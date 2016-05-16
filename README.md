@@ -46,7 +46,7 @@ redis-scan '*'
 
 #### Match type
 
-We can filter the keys by type using an asterisk notation:
+We can filter the keys by type using an `@` prefix (rather than dashes):
 ```shell
 redis-scan @set
 ```
