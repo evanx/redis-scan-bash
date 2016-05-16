@@ -93,7 +93,7 @@ Alternatively we can use `@nolimit` and `@commit` directives:
 ```shell
 redis-scan @hash @nolimit match 'some keys' -- ttl @commit
 ```
-where the `@` directives can be specified before or after the "--" delimiter.
+where the `@` directives can be specified before or after the double-dash delimiter.
 
 
 ### Implementation
