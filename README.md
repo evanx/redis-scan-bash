@@ -60,7 +60,7 @@ redis-scan 13 @hash -- hlen
 ```
 where we use a double-dash to delimit the scan arguments and the `each` command. In this case we execute `hlen` against each key of type `hash`
 
-Actually the script knows that `hlen` is a hashes command, and so `@hash` is superfluous, and so the following works:
+Actually the script knows that `hlen` is a hashes command, and so `@hash` can be omitted:
 ```shell
 redis-scan 13 -- hlen
 ```
