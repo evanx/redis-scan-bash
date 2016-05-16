@@ -87,7 +87,7 @@ To force the `each` command if it dangerous e.g. `del,` we must set `commit` as 
 ```shell
 commit=1 eachLimit=0 redis-scan @hash match 'some keys' -- ttl
 ```
-where actually `commit` is not required for `ttl` but I don't which to risk putting `del` in any examples.
+where actually `commit` is not required for `ttl` but I'd rather not risk putting `del` in any examples.
 
 Alternatively we can use `@nolimit` and `@commit` directives:
 ```shell
