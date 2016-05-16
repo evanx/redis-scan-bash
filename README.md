@@ -71,7 +71,7 @@ To disable the `eachLimit` and actually perform the `each` command if it dangero
 ```shell
 commit=1 eachLimit=0 redis-scan @hash match 'some keys' -- ttl
 ```
-where `echo` is a psuedo command to just echo the key.
+where actually `commit` is not required for `ttl` but I don't which to risk putting `del` in any examples.
 
 Alternatively we can use `@nolimit` and `@commit` directives:
 ```shell
