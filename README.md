@@ -21,6 +21,27 @@ Incidently, it will also sleep while the current load average is above the defau
 
 However when accessing a remote Redis instance via `-h` we might be clobbering that. So the script checks the `slowlog` length between batches and if it increases, then sleeps some more to offer some relief.
 
+Currently we support the following "each" commands:
+
+```
+key: type ttl persist expire del 
+string: get 
+set: scard smembers sscan zcard 
+zset: zrange zrevrange zscan 
+list: llen lrange lpush 
+hash: hlen hgetall hkeys hscan
+```
+
+Actually I haven't tested all these yet, but they should work.
+
+
+So `redis-scan` can be used for various operations on matching keys: 
+- print meta info: `type ttl`
+- print collection sizes: `llen hlen scard zcard`
+- expire/persist matching keys: `expire persist`
+- print collection values: `lrange hgetall smembers zrevrange`
+
+
 ### Examples
 
 The default will scan all keys:
@@ -76,6 +97,18 @@ The following should print `set` for each, since we are filtering sets.
 redis-scan @set -- type
 ```
 
+Print the first five (left) elements of all list keys:
+```shell 
+redis-scan -- lrange 0 5
+```
+
+Initial scan of matching sets:
+```shell
+redis-scan match 'rp:*' -- sscan 0
+```
+where `redis-cli sscan KEY 0` is invoked on each set key matching `rp:*`
+
+
 #### Settings
 
 We disable the `eachLimit` by setting it to `0` at the beginning of the command-line as follows:
@@ -118,6 +151,7 @@ cd ~/tmp/redis-scan-bash
 . bin/bashrc.rhlogging.sh
 . bin/bashrc.redis-scan.sh
 ```
+
 Now we can try `redis-scan` in this shell:
 ```shell
 redis-scan
@@ -133,6 +167,10 @@ Later you can drop the following two lines into your `~/.bashrc`
 ```
 where this assumes that the repo has been cloned to `~/redis-scan-bash`
 
+
+### Further plans
+
+- regex for filtering keys
 
 ### Contact
 

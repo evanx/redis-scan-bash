@@ -13,7 +13,7 @@ RedisScan() { # scan command with sleep between iterations
   local matchTypes='string set zset list hash any' # 'any' for testing
   local eachCommands='type ttl persist expire del get scard smembers zcard llen hlen hgetall hkeys sscan zscan lrange lpush echo' # 'echo' for testing
   local safeEachCommands='type ttl get scard smembers zcard llen hlen hgetall hkeys sscan zscan lrange echo' # 'echo' for testing
-  local eachArgsCommands='expire lrange'
+  local eachArgsCommands='expire lrange sscan hscan zscan lrange'
   local -A typeEachCommands
   typeEachCommands['list']='llen lpush lrange'
   typeEachCommands['hash']='hlen hgetall hkeys hscan'
