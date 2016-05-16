@@ -58,7 +58,7 @@ We can specify an "each" command to be executed for each key on the same Redis i
 ```shell
 redis-scan 13 @hash -- hlen
 ```
-where we use "--" to delimit the scan arguments and the `each` command. In this case we execute `hlen` against each key of type `hash`
+where we use a double-dash to delimit the scan arguments and the `each` command. In this case we execute `hlen` against each key of type `hash`
 
 Incidently above is equivalent to the following command using `xargs`
 ```shell
