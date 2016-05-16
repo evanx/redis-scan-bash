@@ -86,9 +86,10 @@ See: https://github.com/evanx/rquery/tree/master/bin
 Let's grab the repo into a `tmp` directory.
 ```shell
 ( set -e
+  rm -rf ~/tmp/redis-scan-bash
   mkdir -p ~/tmp
   cd ~/tmp
-  git clone https://github.com/evanx/rquery
+  git clone https://github.com/evanx/redis-scan-bash
   cd rquery
   ls -l bin
 )
@@ -96,6 +97,7 @@ Let's grab the repo into a `tmp` directory.
 
 Import the logging utils and `redis-scan` scripts into our shell:
 ```shell
+cd ~/tmp/redis-scan-bash
 . bin/bashrc.rhlogging.sh
 . bin/bashrc.redis-scan.sh
 ```
