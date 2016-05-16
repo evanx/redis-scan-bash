@@ -51,13 +51,13 @@ where supported types are: `string, list, hash, set, zset.`
 
 We can specify an "each" command to be executed for each key on the same Redis instance:
 ```shell
-redis-scan @hash -- hlen
+redis-scan 13 @hash -- hlen
 ```
 where we use "--" to delimit the scan arguments and the `each` command. In this case we execute `hlen` against each key of type `hash`
 
 Incidently above is equivalent to the following command using `xargs`
 ```shell
-redis-scan -n 0 @hash | xargs -n1 redis-cli -n 0 hlen
+redis-scan -n 13 @hash | xargs -n1 redis-cli -n 13 hlen
 ```
 
 The following should print "set" for each, since we are filtering sets.
