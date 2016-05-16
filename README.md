@@ -64,6 +64,7 @@ Actually the script knows that `hlen` is a hashes command, and so `@hash` can be
 ```shell
 redis-scan 13 -- hlen
 ```
+where this will scan all keys (in db 13), and for each hashes key, print its `hlen.`
 
 Incidently above is equivalent to the following command using `xargs`
 ```shell
