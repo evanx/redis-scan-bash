@@ -85,8 +85,6 @@ See: https://github.com/evanx/rquery/tree/master/bin
 
 Let's grab the repo into a `tmp` directory.
 ```shell
-rm -rf ~/tmp/redis-scan-bash
-
 ( set -e
   mkdir -p ~/tmp
   cd ~/tmp
