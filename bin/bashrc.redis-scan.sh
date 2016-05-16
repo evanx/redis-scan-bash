@@ -22,7 +22,7 @@ RedisScan() { # scan command with sleep between iterations
   local sleep=${sleep:=.250}
   local loadavgLimit=${loadavgLimit:=1}
   local commit=${commit:=0}
-  local eachLimit=${eachLimit:=100}
+  local eachLimit=${eachLimit:=1000}
   local cursor=${cursor:=0}
   local redisArgs=''
   local matchType=''
