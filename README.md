@@ -106,7 +106,7 @@ Let's grab the repo into a `tmp` directory.
   mkdir -p ~/tmp
   cd ~/tmp
   git clone https://github.com/evanx/redis-scan-bash
-  cd rquery
+  cd redis-scan-bash
   ls -l bin
 )
 ```
