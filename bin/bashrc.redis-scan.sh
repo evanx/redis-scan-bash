@@ -223,8 +223,8 @@ RedisScan() { # scan command with sleep between iterations
     then
       for keyType in set zset list hash
       do
-        rhdebug "eachCommand: $eachCommand, $keyType: $typeEachCommands[$keyType]"
-        if echo " $typeEachCommands[$keyType] " | grep -q " $eachCommand "
+        rhdebug "eachCommand: $eachCommand, $keyType: ${typeEachCommands[$keyType]}"
+        if echo " ${typeEachCommands[$keyType]} " | grep -q " $eachCommand "
         then
           matchType=$keyType
           break
