@@ -11,8 +11,8 @@ RedisScan() { # scan command with sleep between iterations
   local keyScanCommands='sscan zscan hscan'
   local scanCommands='scan sscan zscan hscan'
   local matchTypes='string set zset list hash any' # 'any' for testing
-  local eachCommands='type persist expire del get scard smembers zcard llen hlen hgetall hkeys sscan zscan lrange lpush echo' # 'echo' for testing
-  local safeEachCommands='type get scard smembers zcard llen hlen hgetall hkeys sscan zscan lrange echo' # 'echo' for testing
+  local eachCommands='type ttl persist expire del get scard smembers zcard llen hlen hgetall hkeys sscan zscan lrange lpush echo' # 'echo' for testing
+  local safeEachCommands='type ttl get scard smembers zcard llen hlen hgetall hkeys sscan zscan lrange echo' # 'echo' for testing
   local eachArgsCommands='expire lrange'
   local -A typeEachCommands
   typeEachCommands['list']='llen lpush lrange'
@@ -45,14 +45,23 @@ RedisScan() { # scan command with sleep between iterations
       rhinfo "dbn $dbn"
     fi
   fi
-  # iterate all args for matchType
+  # iterate all args for special args e.g. @commit, @set et al
   while [ $# -gt 0 ]
   do
     local arg="$1"
     shift
-    if printf '%s' "$arg" | grep -qi '^@'
+    if printf '%s' "$arg" | grep -qv '^@'
     then
-      local argt=`echo "$arg" | tail -c+2`
+      continue
+    fi
+    local argt=`echo "$arg" | tail -c+2`
+    if [ $argt = 'commit' ]
+    then
+      commit=1
+    elif [ $argt = 'nolimit' ]
+    then
+        eachLimit=0
+    else
       matchType="$argt"
       if echo "$matchTypes" | grep -qv "$matchType"
       then
@@ -61,7 +70,6 @@ RedisScan() { # scan command with sleep between iterations
         return $LINENO
       fi
       rhdebug "matchType $matchType"
-      break
     fi
   done
   # iterate redis args until scan args
@@ -246,7 +254,8 @@ RedisScan() { # scan command with sleep between iterations
         rhwarn 'Press Ctrl-C to abort, enter to continue'
         read _confirm
       fi
-    else
+    elif echo " $safeEachCommands " | grep -qv " $eachCommand "
+    then
       rhwarn "This is a dry run so each commands '$eachCommand' are not executed, only displayed. Try commit=1."
     fi
   fi
@@ -288,7 +297,7 @@ RedisScan() { # scan command with sleep between iterations
     keyCount=$[ $keyCount + `cat $tmp | wc -l` - 1 ]
     if [ $cursorCount -eq 0 -o $[ $cursorCount % 10 ] -eq 0 ]
     then
-      rhdebug "redis-cli$redisArgs $scanCommand $cursor $scanArgsString # cursor $cursor, keys $keyCount, matchType [$matchType] $eachCommand"
+      rhdebug "redis-cli$redisArgs $scanCommand $cursor $scanArgsString # cursor $cursor, keys $keyCount, @$matchType each [$eachCommand]"
     fi
     cursorCount=$[ $cursorCount + 1 ]
     if [ ${#matchType} -eq 0 -a ${#eachCommand} -eq 0 ]

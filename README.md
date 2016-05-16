@@ -34,11 +34,12 @@ If a parameter contains an asterisk, then `match` is assumed:
 ```shell
 redis-scan '*'
 ```
+
 We can filter the keys by type using an asterisk notation:
 ```shell
 redis-scan @set
 ```
-where supported types are: string, list, hash, set, zset.
+where supported types are: `string, list, hash, set, zset.`
 
 We can specify an "each" command to be executed for each key on the same Redis instance:
 ```shell
@@ -50,10 +51,23 @@ Incidently above is equivalent to the following command using `xargs`
 ```shell
 redis-scan -n 0 @hash | xargs -n1 redis-cli -n 0 hlen
 ```
-To disable the `eachLimit` and actually perform the `each` command e.g. `del`
+
+The following should print "set" for each, since we are filtering sets.
 ```shell
-commit=1 eachLimit=0 redis-scan @hash -- del
+redis-scan @set -- type
 ```
+
+To disable the `eachLimit` and actually perform the `each` command if it dangerous e.g. `del`
+```shell
+commit=1 eachLimit=0 redis-scan @hash match 'some keys' -- ttl
+```
+where `echo` is a psuedo command to just echo the key.
+
+Alternatively we can use `@nolimit` and `@commit` directives:
+```shell
+redis-scan @hash @nolimit match 'some keys' -- ttl @commit
+```
+where the `@` directives can be specified before or after the "--" delimiter.
 
 ### Implementation
 
@@ -82,6 +96,5 @@ redis-scan @set
 redis-scan @hash match '*'
 redis-scan @set -- ttl
 ```
-where we must set `commit` for the each command e.g. `ttl` to be executed.
 
 https://twitter.com/@evanxsummers
