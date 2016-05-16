@@ -99,7 +99,7 @@ redis-scan @set -- type
 
 Print the first five (left) elements of all list keys:
 ```shell 
-redis-scan -- lrange 0 5
+redis-scan -- lrange 0 4
 ```
 
 Initial scan of matching sets:
