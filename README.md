@@ -31,13 +31,14 @@ Currently we support the following "each" commands of key types:
 - list: `llen lrange` 
 - hash: `hlen hgetall hkeys hscan` 
 
-Actually I haven't tested all these yet, but they should work.
+So `redis-scan` can be used to print the content of matching keys: 
+- meta info: `type ttl`
+- collection sizes: `llen hlen scard zcard`
+- collection values: `lrange hgetall smembers zrevrange`
 
-So `redis-scan` can be used for various operations on matching keys: 
-- print meta info: `type ttl`
-- print collection sizes: `llen hlen scard zcard`
-- expire/persist matching keys: `expire persist`
-- print collection values: `lrange hgetall smembers zrevrange`
+Also `redis-scan` can be used for some mutative operations on matching keys: 
+- change or remove expiry: `expire persist`
+- delete: `del`
 
 
 ### Examples
