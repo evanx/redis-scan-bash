@@ -126,12 +126,12 @@ redis-scan @hash match '*'
 redis-scan @set -- ttl
 ```
 
-Later you can drop the following two lines into your ``~/.bashrc`
+Later you can drop the following two lines into your `~/.bashrc`
 ```shell
 . ~/redis-scan-bash/bin/bashrc.rhlogging.sh
 . ~/redis-scan-bash/bin/bashrc.redis-scan.sh
 ```
-where this assumes that the repo has been cloned to ``~/redis-scan-bash`
+where this assumes that the repo has been cloned to `~/redis-scan-bash`
 
 
 ### Contact
