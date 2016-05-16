@@ -65,7 +65,7 @@ Incidently above is equivalent to the following command using `xargs`
 redis-scan -n 13 @hash | xargs -n1 redis-cli -n 13 hlen
 ```
 
-The following should print "set" for each, since we are filtering sets.
+The following should print `set` for each, since we are filtering sets.
 ```shell
 redis-scan @set -- type
 ```
