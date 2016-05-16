@@ -81,14 +81,14 @@ where the `@` directives can be specified before or after the "--" delimiter.
 
 ### Implementation
 
-
 See: https://github.com/evanx/rquery/tree/master/bin
 
 Let's grab the repo into a `tmp` directory.
 ```shell
+rm -rf ~/tmp/redis-scan-bash
+
 ( set -e
   mkdir -p ~/tmp
-  rm -rf ~/tmp/redis-scan-bash
   cd ~/tmp
   git clone https://github.com/evanx/redis-scan-bash
   cd rquery
@@ -99,6 +99,7 @@ Let's grab the repo into a `tmp` directory.
 Import the logging utils and `redis-scan` scripts into our shell:
 ```shell
 cd ~/tmp/redis-scan-bash
+
 . bin/bashrc.rhlogging.sh
 . bin/bashrc.redis-scan.sh
 ```
