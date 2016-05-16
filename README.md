@@ -13,7 +13,7 @@ It's brand new and untested, so please test on a disposable VM against a disposa
 
 Let me know any issues via Twitter (https://twitter.com/@evanxsummers) or open an issue on Github.
 
-<img src="https://evanx.github.io/images/rquery/redis-scan-list.png">
+<img src="https://evanx.github.io/images/rquery/redis-scan-UPDATED.png">
 
 ### Implementation overview
 
@@ -24,12 +24,12 @@ Incidently, it will also sleep while the current load average is above the defau
 However when accessing a remote Redis instance via `-h` we might be clobbering that. So the script checks the `slowlog` length between batches and if it increases, then sleeps some more to offer some relief.
 
 Currently we support the following "each" commands of key types:
-- key: `type ttl persist expire del`
+- key: `type ttl` `persist expire del`
 - string: `get`
 - set: `scard smembers sscan` 
 - zset: `zrange zrevrange zscan` 
-- list: `llen lrange lpush` 
-- hash: `hlen hgetall hkeys hscan`
+- list: `llen lrange` 
+- hash: `hlen hgetall hkeys hscan` 
 
 Actually I haven't tested all these yet, but they should work.
 
@@ -105,6 +105,11 @@ Initial scan of matching sets:
 redis-scan match 'rp:*' -- sscan 0
 ```
 where `redis-cli sscan KEY 0` is invoked on each set key matching `rp:*`
+
+Print hash keys:
+```shell
+redis-scan match 'rp:*' -- hkeys
+```
 
 
 #### Settings

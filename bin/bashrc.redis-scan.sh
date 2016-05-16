@@ -11,14 +11,20 @@ RedisScan() { # scan command with sleep between iterations
   local keyScanCommands='sscan zscan hscan'
   local scanCommands='scan sscan zscan hscan'
   local matchTypes='string set zset list hash any' # 'any' for testing
-  local eachCommands='type ttl persist expire del get scard smembers zcard llen hlen hgetall hkeys sscan zscan lrange lpush echo' # 'echo' for testing
+  local eachCommands='type ttl persist expire del echo' # 'echo' for testing
   local safeEachCommands='type ttl get scard smembers zcard llen hlen hgetall hkeys sscan zscan lrange echo' # 'echo' for testing
-  local eachArgsCommands='expire lrange sscan hscan zscan lrange'
+  local eachArgsCommands='expire lrange sscan hscan zrevrange zrange'
   local -A typeEachCommands
-  typeEachCommands['list']='llen lpush lrange'
+  typeEachCommands['string']='get'
+  typeEachCommands['list']='llen lrange'
   typeEachCommands['hash']='hlen hgetall hkeys hscan'
   typeEachCommands['set']='scard smembers sscan'
   typeEachCommands['zset']='zcard zrevrange zrange zscan'
+  for keyType in string list hash set zset
+  do
+    eachCommands="$eachCommands ${typeEachCommands[$keyType]}"
+  done
+  rhdebug "eachCommands $eachCommands"
   local sleep=${sleep:=.250}
   local loadavgLimit=${loadavgLimit:=1}
   local commit=${commit:=0}
@@ -203,6 +209,12 @@ RedisScan() { # scan command with sleep between iterations
   rhdebug eachCommand $eachCommand
   if [ ${#eachCommand} -gt 0 ]
   then
+    if echo " $eachCommands " | grep -qv " $eachCommand "
+    then
+      rherror "Invalid each command: $eachCommand. Try one of: $eachCommands"
+      RedisScan_clean
+      return $LINENO
+    fi
     if echo " $eachArgsCommands " | grep -q " $eachCommand "
     then
       if [ $# -eq 0 ]
@@ -263,17 +275,17 @@ RedisScan() { # scan command with sleep between iterations
     done
     if [ ${#scanArgs[@]} -eq 0 ]
     then
-      rhinfo "scan: redis-cli$redisArgs $scanCommand$scanKey $cursor"
+      rhwarn "scan: redis-cli$redisArgs $scanCommand$scanKey $cursor"
     else
-      rhinfo "scan: redis-cli$redisArgs $scanCommand$scanKey $cursor ${scanArgs[@]}"
+      rhwarn "scan: redis-cli$redisArgs $scanCommand$scanKey $cursor ${scanArgs[@]}"
     fi
     if [ ${#matchType} -gt 0 ]
     then
-      rhinfo "type: $matchType, eachLimit: $eachLimit, commit: $commit"
+      rhwarn "type: $matchType, eachLimit: $eachLimit, commit: $commit"
     else
-      rhinfo "eachLimit: $eachLimit, commit: $commit"
+      rhwarn "eachLimit: $eachLimit, commit: $commit"
     fi
-    rhinfo 'each:' redis-cli$redisArgs $eachCommand KEY$eachArgs
+    rhwarn 'each:' redis-cli$redisArgs $eachCommand KEY$eachArgs
     if [ $commit -eq 1 ]
     then
       rhwarn "WARNING: each command '$eachCommand' will be executed on each scanned key"
