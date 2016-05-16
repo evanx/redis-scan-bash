@@ -7,6 +7,9 @@ Here is a Redis scanner intended for `~/.bashrc` aliased as `redis-scan`
 
 It's brand new and untested, so please test on a disposable VM against a disposable local Redis instance, in case it trashes your Redis keys. As per the ISC license, the author disclaims any responsibility for any unfortunate events resulting from the disastrous use of this bash function ;)
 
+<img src="https://evanx.github.io/images/rquery/redis-scan-list.png">
+<hr>
+
 ### Examples
 
 We want to use `SCAN` (with a cursor), and also sleeping (default 250ms) before fetching the next batch, so we allow other Redis clients to be serviced regularly while we sleep.
