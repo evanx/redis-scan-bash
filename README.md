@@ -21,19 +21,15 @@ Incidently, it will also sleep while the current load average is above the defau
 
 However when accessing a remote Redis instance via `-h` we might be clobbering that. So the script checks the `slowlog` length between batches and if it increases, then sleeps some more to offer some relief.
 
-Currently we support the following "each" commands:
-
-```
-key: type ttl persist expire del 
-string: get 
-set: scard smembers sscan zcard 
-zset: zrange zrevrange zscan 
-list: llen lrange lpush 
-hash: hlen hgetall hkeys hscan
-```
+Currently we support the following "each" commands of key types:
+- key: `type ttl persist expire del`
+- string: `get`
+- set: `scard smembers sscan` 
+- zset: `zrange zrevrange zscan` 
+- list: `llen lrange lpush` 
+- hash: `hlen hgetall hkeys hscan`
 
 Actually I haven't tested all these yet, but they should work.
-
 
 So `redis-scan` can be used for various operations on matching keys: 
 - print meta info: `type ttl`
