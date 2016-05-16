@@ -11,6 +11,8 @@ Here is a Redis scanner intended for `~/.bashrc` aliased as `redis-scan`
 
 It's brand new and untested, so please test on a disposable VM against a disposable local Redis instance, in case it trashes your Redis keys. As per the ISC license, the author disclaims any responsibility for any unfortunate events resulting from the disastrous use of this bash function ;)
 
+Let me know any issues via Twitter (https://twitter.com/@evanxsummers) or open an issue on Github.
+
 <img src="https://evanx.github.io/images/rquery/redis-scan-list.png">
 
 ### Implementation overview
