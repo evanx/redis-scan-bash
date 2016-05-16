@@ -78,7 +78,12 @@ redis-scan @set -- type
 
 #### Settings
 
-We disable the `eachLimit` by setting to `0,` and actually perform the `each` command if it dangerous e.g. `del` by setting `commit` as follows:
+We disable the `eachLimit` by setting it to `0` at the beginning of the command-line as follows:
+```shell
+eachLimit=0 redis-scan @hash match 'some keys' -- ttl
+```
+
+To force the `each` command if it dangerous e.g. `del,` we must set `commit` as follows:
 ```shell
 commit=1 eachLimit=0 redis-scan @hash match 'some keys' -- ttl
 ```
