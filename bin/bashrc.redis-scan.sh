@@ -110,7 +110,7 @@ RedisScan() { # scan command with sleep between iterations
         RedisScan_clean
         return $LINENO
       fi
-      rhdebug "each '$eachCommand' [$@]"
+      rhdebug "each $eachCommand [$@]"
       break
     elif printf '%s' "$arg" | grep -qi '^match$'
     then
@@ -185,7 +185,7 @@ RedisScan() { # scan command with sleep between iterations
         fi
         eachCommand="$1"
         shift
-        rhdebug $LINENO eachCommand $eachCommand
+        rhdebug eachCommand $eachCommand
         break
       else
         scanArgs+=("$arg")
@@ -200,7 +200,7 @@ RedisScan() { # scan command with sleep between iterations
     rhdebug scanArgs "${scanArgs[@]}"
   fi
   # check eachCommand
-  rhdebug $LINENO eachCommand $eachCommand
+  rhdebug eachCommand $eachCommand
   if [ ${#eachCommand} -gt 0 ]
   then
     if echo " $eachArgsCommands " | grep -q " $eachCommand "
