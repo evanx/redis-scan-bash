@@ -104,7 +104,10 @@ redis-scan @hash match '*'
 redis-scan @set -- ttl
 ```
 
-https://twitter.com/@evanxsummers
+### Contact
 
-Further reading:
+- https://twitter.com/@evanxsummers
+
+### Further reading
+
 - https://github.com/evanx/redishub
