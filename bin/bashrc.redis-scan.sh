@@ -31,7 +31,7 @@ RedisScan() { # scan command with sleep between iterations
   local scanCommand='scan'
   local scanKey=''
   local -a scanArgs=()
-  rhdebug "sleep: $sleep, loadavgLimit: $loadavgLimit, eachLimit: $eachLimit, args: $@"
+  rhdebug "sleep: $sleep, loadavgLimit: $loadavgLimit, eachLimit: $eachLimit, args:" "$@"
   # check initial arg for dbn
   if [ $# -eq 0 ]
   then
@@ -45,41 +45,30 @@ RedisScan() { # scan command with sleep between iterations
       rhinfo "dbn $dbn"
     fi
   fi
-  # iterate all args for special args e.g. @commit, @set et al
-  while [ $# -gt 0 ]
-  do
-    local arg="$1"
-    shift
-    if printf '%s' "$arg" | grep -qv '^@'
-    then
-      continue
-    fi
-    local argt=`echo "$arg" | tail -c+2`
-    if [ $argt = 'commit' ]
-    then
-      commit=1
-    elif [ $argt = 'nolimit' ]
-    then
-        eachLimit=0
-    else
-      matchType="$argt"
-      if echo "$matchTypes" | grep -qv "$matchType"
-      then
-        rherror "Invalid specified key type: $matchType. Expecting one of: $matchTypes"
-        RedisScan_clean
-        return $LINENO
-      fi
-      rhdebug "matchType $matchType"
-    fi
-  done
   # iterate redis args until scan args
   while [ $# -gt 0 ]
   do
     local arg="$1"
     shift
-    if printf '%s' "$arg" | grep -qi '^@'
+    if printf '%s' "$arg" | grep -q '^@'
     then
-      continue
+      local argt=`echo "$arg" | tail -c+2`
+      if [ $argt = 'commit' ]
+      then
+        commit=1
+      elif [ $argt = 'nolimit' ]
+      then
+        eachLimit=0
+      else
+        matchType="$argt"
+        if echo "$matchTypes" | grep -qv "$matchType"
+        then
+          rherror "Invalid specified key type: $matchType. Expecting one of: $matchTypes"
+          RedisScan_clean
+          return $LINENO
+        fi
+        rhdebug "matchType $matchType"
+      fi
     elif printf '%s' "$arg" | grep -qi '^scan$'
     then
       if [ $# -gt 0 ]
@@ -90,7 +79,7 @@ RedisScan() { # scan command with sleep between iterations
           shift
         fi
       fi
-      break;
+      break
     elif printf '%s' "$arg" | grep -qi 'scan$'
     then
       scanCommand=$arg
@@ -111,7 +100,7 @@ RedisScan() { # scan command with sleep between iterations
           shift
         fi
       fi
-      break;
+      break
     elif [ $arg = '--' ]
     then
       eachCommand="$1"
@@ -162,13 +151,31 @@ RedisScan() { # scan command with sleep between iterations
   # handle scan args
   if [ ${#eachCommand} -eq 0 ]
   then
-    rhdebug "scanCommand $scanCommand [$@]"
     # iterate scanArgs until '--'
     while [ $# -gt 0 ]
     do
       local arg="$1"
       shift
-      if [ "$arg" = '--' ]
+      if printf '%s' "$arg" | grep -q '^@'
+      then
+        local argt=`echo "$arg" | tail -c+2`
+        if [ $argt = 'commit' ]
+        then
+          commit=1
+        elif [ $argt = 'nolimit' ]
+        then
+          eachLimit=0
+        else
+          matchType="$argt"
+          if echo "$matchTypes" | grep -qv "$matchType"
+          then
+            rherror "Invalid specified key type: $matchType. Expecting one of: $matchTypes"
+            RedisScan_clean
+            return $LINENO
+          fi
+          rhdebug "matchType $matchType"
+        fi
+      elif [ "$arg" = '--' ]
       then
         if [ $# -eq 0 ]
         then
@@ -178,12 +185,14 @@ RedisScan() { # scan command with sleep between iterations
         fi
         eachCommand="$1"
         shift
+        rhdebug $LINENO eachCommand $eachCommand
         break
       else
         scanArgs+=("$arg")
       fi
     done
   fi
+  # check scan args
   if [ ${#scanArgs[@]} -eq 0 ]
   then
     rhdebug scanArgs empty
@@ -191,7 +200,7 @@ RedisScan() { # scan command with sleep between iterations
     rhdebug scanArgs "${scanArgs[@]}"
   fi
   # check eachCommand
-  rhdebug eachCommand $eachCommand
+  rhdebug $LINENO eachCommand $eachCommand
   if [ ${#eachCommand} -gt 0 ]
   then
     if echo " $eachArgsCommands " | grep -q " $eachCommand "
@@ -224,7 +233,26 @@ RedisScan() { # scan command with sleep between iterations
     fi
     while [ $# -gt 0 ]
     do
-      if printf '%s' "$1" | grep -q '^-'
+      if printf '%s' "$arg" | grep -q '^@'
+      then
+        local argt=`echo "$arg" | tail -c+2`
+        if [ $argt = 'commit' ]
+        then
+          commit=1
+        elif [ $argt = 'nolimit' ]
+        then
+          eachLimit=0
+        else
+          matchType="$argt"
+          if echo "$matchTypes" | grep -qv "$matchType"
+          then
+            rherror "Invalid specified key type: $matchType. Expecting one of: $matchTypes"
+            RedisScan_clean
+            return $LINENO
+          fi
+          rhdebug "matchType $matchType"
+        fi
+      elif printf '%s' "$1" | grep -q '^-'
       then
         rherror "Unsupported each arg: $1"
         RedisScan_clean
