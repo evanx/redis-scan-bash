@@ -1,7 +1,11 @@
 
 ## redis-scan
 
+### Problem
+
 We know we must avoid `redis-cli keys '*'` especially on production servers with many keys, since that blocks other clients for a significant time e.g. more than 250ms, maybe even a few seconds. That might mean all current requests by users of your website are delayed for that time. Those will be recorded in your `slowlog` which you might be monitoring, and so alerts get triggered etc. Let's avoid that.
+
+### Solution
 
 Here is a Redis scanner intended for `~/.bashrc` aliased as `redis-scan`
 
@@ -10,13 +14,15 @@ It's brand new and untested, so please test on a disposable VM against a disposa
 <img src="https://evanx.github.io/images/rquery/redis-scan-list-1449.png">
 <hr>
 
-### Examples
+### Implementation overview
 
 We want to use `SCAN` (with a cursor), and also sleeping (default 250ms) before fetching the next batch, so we allow other Redis clients to be serviced regularly while we sleep.
 
 Incidently, it will also sleep while the current load average is above the default limit (1) so that whatever we are doing doesn't further overload our machine.
 
 However when accessing a remote Redis instance via `-h` we might be clobbering that. So the script checks the `slowlog` length between batches and if it increases, then sleeps some more to offer some relief.
+
+### Examples
 
 The default will scan all keys:
 ```shell
