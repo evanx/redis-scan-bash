@@ -1,7 +1,7 @@
 
 ## redis-scan
 
-We know we must avoid `redis-cli keys '*'` especially on production servers, since this locks up Redis for the duration.
+We know we must avoid `redis-cli keys '*'` especially on production servers with many keys, since that blocks other clients for a significant time e.g. more than 250ms, maybe even a few seconds. That might mean all current requests by users of your website are delayed for that time. Those will be recorded in your `slowlog` which you might be monitoring, and so alerts get triggered etc. Let's avoid that.
 
 Here is a Redis scanner intended for `~/.bashrc` aliased as `redis-scan`
 
@@ -9,9 +9,9 @@ It's brand new and untested, so please test on a disposable VM against a disposa
 
 ### Examples
 
-By default it will scan through all keys using `SCAN` (with a cursor), sleeping for `sleep` (default 250ms) before fetching the next batch, so that we don't hog Redis and give other clients a chance, which is especially important on production machines - although this script is not recommended for any production environments (yet).
+We want to use `SCAN` (with a cursor), and also sleeping (default 250ms) before fetching the next batch, so we allow other Redis clients to be serviced regularly while we sleep.
 
-Incidently, it will also sleep while the current load average is above the default limit (1) so that what we are doing doesn't further overload our machine.
+Incidently, it will also sleep while the current load average is above the default limit (1) so that whatever we are doing doesn't further overload our machine.
 
 However when accessing a remote Redis instance via `-h` we might be clobbering that. So the script checks the `slowlog` length between batches and if it increases, then sleeps some more to offer some relief.
 
@@ -19,6 +19,7 @@ The default will scan all keys:
 ```shell
 redis-scan
 ```
+Actually, there is a `eachLimit` (default 1000) so it will only scan a 1000 keys (in batches, with sleeps inbetween), and exit with an error message "Limit reached."
 
 If the first parameter is a number, it is taken as the database number:
 ```shell
@@ -26,20 +27,24 @@ redis-scan 2
 ```
 where this scans database number `2` via `redis-cli -n 2`
 
-We can use `match`
+We can and should use `match` to reduce the number of keys.
 ```shell
-redis-scan 0 match '*'
+redis-scan 0 match 'demo:*'
 ```
 If a parameter contains an asterisk, then `match` is assumed:
 ```shell
 redis-scan '*'
 ```
 
+#### Match type
+
 We can filter the keys by type using an asterisk notation:
 ```shell
 redis-scan @set
 ```
 where supported types are: `string, list, hash, set, zset.`
+
+#### Each command
 
 We can specify an "each" command to be executed for each key on the same Redis instance:
 ```shell
@@ -56,6 +61,8 @@ The following should print "set" for each, since we are filtering sets.
 ```shell
 redis-scan @set -- type
 ```
+
+#### Settings
 
 To disable the `eachLimit` and actually perform the `each` command if it dangerous e.g. `del`
 ```shell
@@ -98,3 +105,6 @@ redis-scan @set -- ttl
 ```
 
 https://twitter.com/@evanxsummers
+
+Further reading:
+- https://github.com/evanx/redishub
