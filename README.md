@@ -98,7 +98,7 @@ where the `@` directives can be specified before or after the double-dash delimi
 
 ### Implementation
 
-See: https://github.com/evanx/rquery/tree/master/bin
+See: https://github.com/evanx/redis-scan-bash/tree/master/bin
 
 Let's grab the repo into a `tmp` directory.
 ```shell
@@ -125,6 +125,14 @@ redis-scan @set
 redis-scan @hash match '*'
 redis-scan @set -- ttl
 ```
+
+Later you can drop the following two lines into your ``~/.bashrc`
+```shell
+. ~/redis-scan-bash/bin/bashrc.rhlogging.sh
+. ~/redis-scan-bash/bin/bashrc.redis-scan.sh
+```
+where this assumes that the repo has been cloned to ``~/redis-scan-bash`
+
 
 ### Contact
 
