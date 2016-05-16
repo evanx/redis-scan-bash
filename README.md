@@ -9,11 +9,11 @@ It's brand new and untested, so please test on a disposable VM against a disposa
 
 ### Examples
 
-By default it will scan through all keys using `SCAN` (with a cursor), sleeping for `sleep` (default 250ms) before fetching the next batch, so that other clients get a chance.
+By default it will scan through all keys using `SCAN` (with a cursor), sleeping for `sleep` (default 250ms) before fetching the next batch, so that we don't hog Redis and give other clients a chance, which is especially important on production machines - although this script is not recommended for any production environments (yet).
 
 Incidently, it will also sleep while the current load average is above the default limit (1) so that what we are doing doesn't further overload our machine.
 
-However when accessing a remote Redis instance via `-h` we might be clobbering that. So the script checks the `slowlog` length between batches and if its length increases, then sleeps some more.
+However when accessing a remote Redis instance via `-h` we might be clobbering that. So the script checks the `slowlog` length between batches and if it increases, then sleeps some more to offer some relief.
 
 The default will scan all keys:
 ```shell

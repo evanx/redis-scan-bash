@@ -12,6 +12,7 @@ RedisScan() { # scan command with sleep between iterations
   local scanCommands='scan sscan zscan hscan'
   local matchTypes='string set zset list hash any' # 'any' for testing
   local eachCommands='type persist expire del get scard smembers zcard llen hlen hgetall hkeys sscan zscan lrange lpush echo' # 'echo' for testing
+  local safeEachCommands='type get scard smembers zcard llen hlen hgetall hkeys sscan zscan lrange echo' # 'echo' for testing
   local eachArgsCommands='expire lrange'
   local -A typeEachCommands
   typeEachCommands['list']='llen lpush lrange'
@@ -167,16 +168,19 @@ RedisScan() { # scan command with sleep between iterations
           RedisScan_clean
           return $LINENO
         fi
-        eachCommand=$1
+        eachCommand="$1"
         shift
         break
-      elif printf '%s' "$arg" | grep -q '*'
-      then
+      else
         scanArgs+=("$arg")
-        rhdebug scanArgs "${scanArgs[@]}"
-        break
       fi
     done
+  fi
+  if [ ${#scanArgs[@]} -eq 0 ]
+  then
+    rhdebug scanArgs empty
+  else
+    rhdebug scanArgs "${scanArgs[@]}"
   fi
   # check eachCommand
   rhdebug eachCommand $eachCommand
@@ -236,9 +240,14 @@ RedisScan() { # scan command with sleep between iterations
     rhinfo 'each:' redis-cli$redisArgs $eachCommand KEY$eachArgs
     if [ $commit -eq 1 ]
     then
-      rhwarn "WARNING: This is not a dry run"
-      rhwarn 'Press Ctrl-C to abort, enter to continue'
-      read _confirm
+      rhwarn "WARNING: each command '$eachCommand' will be executed on each scanned key"
+      if echo " $safeEachCommands " | grep -qv " $eachCommand "
+      then
+        rhwarn 'Press Ctrl-C to abort, enter to continue'
+        read _confirm
+      fi
+    else
+      rhwarn "This is a dry run so each commands '$eachCommand' are not executed, only displayed. Try commit=1."
     fi
   fi
   # scan keys
@@ -305,7 +314,7 @@ RedisScan() { # scan command with sleep between iterations
           echo $key
         else
           rhinfo redis-cli$redisArgs $eachCommand $key$eachArgs
-          if [ $commit -eq 1 ]
+          if [ $commit -eq 1 ] || echo " $safeEachCommands " | grep -q " $eachCommand "
           then
             redis-cli$redisArgs $eachCommand $key$eachArgs
             if [ $? -ne 0 ]
