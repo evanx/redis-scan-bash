@@ -342,7 +342,10 @@ RedisScan() { # scan command with sleep between iterations
     cursorCount=$[ $cursorCount + 1 ]
     if [ ${#matchType} -eq 0 -a ${#eachCommand} -eq 0 ]
     then
-      tail -n +2 $tmp
+      if [ `tail -n +2 $tmp | sed '/^$/d' | wc -l` -gt 0 ]
+      then
+        tail -n +2 $tmp 
+      fi
     else
       for key in `tail -n +2 $tmp`
       do

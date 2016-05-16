@@ -14,6 +14,8 @@ scan() {
   fi
 }
 
+  RedisScan 'feed:*'
+
   scan -n 0 @hash scan match 'article:*' -- hlen
   scan -n 0 @hash scan 0 match 'article:*' -- expire 999999
 
