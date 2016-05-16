@@ -13,7 +13,7 @@ It's brand new and untested, so please test on a disposable VM against a disposa
 
 Let me know any issues via Twitter (https://twitter.com/@evanxsummers) or open an issue on Github.
 
-<img src="https://evanx.github.io/images/rquery/redis-scan-UPDATED.png">
+<img src="https://evanx.github.io/images/rquery/redis-scan-bash-featured.png">
 
 ### Implementation overview
 
