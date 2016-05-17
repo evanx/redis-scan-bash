@@ -387,7 +387,7 @@ RedisScan() { # scan command with sleep between iterations
     sleep $sleep # sleep to alleviate the load on Redis and the server
     while cat /proc/loadavg | grep -qv "^[0-${loadavgLimit}]"
     do
-      rhdebug loadavg `cat /proc/loadavg | cut -f1 -d' '`
+      rhwarn loadavg `cat /proc/loadavg | cut -f1 -d' '`
       sleep 5 # sleep while load is too high
     done
     local _slowlogLen=`redis-cli$redisArgs slowlog len`
