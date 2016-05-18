@@ -208,7 +208,17 @@ By the way, I'm a firm believer that bash scripts should `set -e` from the outse
 - the exit trap should alert us that the script has aborted on error
 - in this case, the nonzero exit code can be `$LINENO` for debugging purposes
 
-This enforces the good practice of handling errors, by aborting when unexpected things happen, that are not handled.
+This enforces the good practice of handling errors, and vastly improves the robustness of bash scripts.
+
+In development/testing:
+- aborts force us to handle typical errors 
+
+In production:
+- we abort before any damage is done
+
+It's easy to reason about the state, when we know that all commands succeeded, or otherwise their nonzero returns were handled appropriately.
+
+So for your next bash script, try `set -e` and persevere. Otherwise include a warning that your bash script is typically fragile ;)
 
 
 ### Contact
