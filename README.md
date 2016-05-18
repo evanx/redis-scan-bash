@@ -203,6 +203,8 @@ Then the script can `set -e` i.e. exit on error, with an exit trap to cleanup. A
 
 It was originally intended to be a simple function that I would paste into `bashrc` but it became bigger than expected.
 
+#### set -e 
+
 By the way, I'm a firm believer that bash scripts should `set -e` from the outset:
 - we must handle nonzero returns, otherwise the script will exit
 - the exit trap should alert us that the script has aborted on error
