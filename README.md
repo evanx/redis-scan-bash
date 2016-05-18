@@ -206,7 +206,7 @@ It was originally intended to be a simple function that I would paste into `bash
 By the way, I'm a firm believer that bash scripts should `set -e` from the outset:
 - we must handle nonzero returns, otherwise the script will exit
 - the exit trap should alert us that the script has aborted on error
-- in this case, the nonzero error exit code can be `$LINENO` for debugging purposes
+- in this case, the nonzero exit code can be `$LINENO` for debugging purposes
 
 This enforces the good practice of handling errors. 
 
