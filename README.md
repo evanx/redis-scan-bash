@@ -72,6 +72,7 @@ redis-scan @set
 ```
 where supported types are: `string, list, hash, set, zset.`
 
+
 #### Each command
 
 We can specify an "each" command to be executed for each key on the same Redis instance:
@@ -171,6 +172,18 @@ Later you can drop the following two lines into your `~/.bashrc`
 ```
 where this assumes that the repo has been cloned to `~/redis-scan-bash`
 
+
+### Troubleshooting 
+
+To enable debug logging:
+```shell
+export RHLEVEL=debug
+```
+
+To disable debug logging:
+```shell
+export RHLEVEL=info
+```
 
 ### Further plans
 
