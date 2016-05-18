@@ -189,6 +189,23 @@ export RHLEVEL=info
 
 - regex for filtering keys
 
+
+### Upcoming refactor
+
+I'll be refactoring to externalise the `RedisScan` function from `bashrc` 
+
+Then it can be included in your `PATH` or aliased in `bashrc` as follows:
+```shell
+alias redis-scan=~/redis-scan-bash/bin/redis-scan.sh
+```
+
+Then the script can `set -e` i.e. exit on error, with an exit trap to cleanup. Also then it can be split into multiple functions to be more readable. 
+
+It was originally intended to be a simple function that I would paste into `bashrc` but it became bigger than expected.
+
+By the way, I'm a stern believer that all bash scripts should `set -e`
+
+
 ### Contact
 
 - https://twitter.com/@evanxsummers
