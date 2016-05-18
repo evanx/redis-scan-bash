@@ -1,6 +1,6 @@
 
 RedisScan_clean() {
-  rm -rf ~/tmp/redis-scan/$$
+  rm -f ~/tmp/redis-scan/$$
 }
 
 RedisScan() { # scan command with sleep between iterations
