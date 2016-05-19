@@ -295,15 +295,17 @@ RedisScan() { # scan command with sleep between iterations
     rhwarn 'each:' redis-cli$redisArgs $eachCommand KEY$eachArgs
     if [ $commit -eq 1 ]
     then
-      rhwarn "WARNING: each command '$eachCommand' will be executed on each scanned key"
+      rherror "WARNING: each command '$eachCommand' will be executed on each scanned key"
       if echo " $safeEachCommands " | grep -qv " $eachCommand "
       then
-        rhwarn 'Press Ctrl-C to abort, enter to continue'
+        rherror 'Press Ctrl-C to abort, enter to continue'
         read _confirm
       fi
     elif echo " $safeEachCommands " | grep -qv " $eachCommand "
     then
-      rhwarn "This is a dry run so each commands '$eachCommand' are not executed, only displayed. Try commit=1."
+      rhwarn "DRY RUN: each commands '$eachCommand' are not executed, only displayed. Later, try @commit"
+      rhwarn 'Press Ctrl-C to abort, enter to continue'
+      read _confirm
     fi
   fi
   # scan keys
