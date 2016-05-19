@@ -156,9 +156,11 @@ You can roughly work out how long a full scan will take by timing the run for 10
 
 #### Remote loadavg
 
-If running against a remote instance:
+If running against a remote instance, you can:
 - specify `uptimeRemote` for ssh, to determine its loadavg via `ssh $uptimeRemote uptime`
-- specify `loadavgKey` to read the load average from Redis
+- alternatively specify `loadavgKey` to read the load average via Redis
+
+Then the script can pause when the load average of the remote Redis host is high.
 
 When using `loadavgKey` you could run a minutely cron job on the Redis host:
 ```shell
@@ -175,6 +177,8 @@ Alternatively an ssh remote can be specified for `uptime` perhaps via an ssh for
 ```shell
   ssh $uptimeRemote uptime | sed -n 's/.* load average: \([0-9]*\)\..*/\1/p'
 ```
+
+
 #### Each commands
 
 Currently we support the following "each" commands:
