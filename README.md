@@ -129,7 +129,8 @@ When we have a large number of matching keys, and are performing a `type` check 
 - before key type check, sleep for 5ms (hard-coded)
 - sleep `eachCommandSleep` (25ms) before any specified each command is executed
 - while the load average (truncated integer) is above `loadavgLimit` sleep in a loop to wait until it's within this limit
-- if a `loadavgKey` is set, then ascertain the current load average from that Redis key
+- if `loadavgKey` is set, then ascertain the current load average from that Redis key
+- if `uptimeRemote` is set, then ascertain the current load average via ssh
 
 The defaults themselves are set in the script, and overridden, as follows:
 ```shell
