@@ -128,10 +128,8 @@ When we have a large number of matching keys, and are performing a `type` check 
 - if the slowlog length increases, double the sleep time e.g. from 250ms to 500ms
 - before key type check, sleep for 5ms (hard-coded)
 - sleep `eachCommandSleep` (25ms) before any specified each command is executed
-- while the load average (truncated integer) is above `loadavgLimit` sleep in a loop to wait until its within this limit
-- if a `loadavgKey` passed, then ascertain the current load average from that Redis key
-
-The defaults can be overridden via the command-line, or via shell `export`
+- while the load average (truncated integer) is above `loadavgLimit` sleep in a loop to wait until it's within this limit
+- if a `loadavgKey` is set, then ascertain the current load average from that Redis key
 
 The defaults themselves are set in the script, and overridden, as follows:
 ```shell
@@ -142,6 +140,10 @@ local loadavgLimit=${loadavgLimit:-1} # sleep while loadavg above this threshold
 local loadavgKey=${loadavgKey:-''} # ascertain loadavg from Redis key
 local uptimeRemote=${uptimeRemote:-''} # ssh remote with 'uptime' command access
 ```
+
+#### loadavg
+
+So the defaults can be overridden via the command-line passing, or via shell `export`
 
 You can roughly work out how long a full scan will take by timing the run for 1000 keys, and factoring the time for the total number of keys. If it's too long, you can override the settings `scanSleep` and `eachCommandSleep` with shorter durations. However, you should monitor your system during these runs to ensure it's not too adversely affected.
 
