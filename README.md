@@ -143,7 +143,7 @@ local loadavgKey=${loadavgKey:-''} # ascertain loadavg from Redis key
 local uptimeRemote=${uptimeRemote:-''} # ssh remote with 'uptime' command access
 ```
 
-You can roughly work out how long a full scan will take by timing the run for 1000 keys, and factoring the time for the total number of keys. If it's too long, you can override the settings `scanSleep` and `eachCommandSleep` with shorter durations. However, you should monitor your system during these runs to ensure it's not being too adversely affected.
+You can roughly work out how long a full scan will take by timing the run for 1000 keys, and factoring the time for the total number of keys. If it's too long, you can override the settings `scanSleep` and `eachCommandSleep` with shorter durations. However, you should monitor your system during these runs to ensure it's not too adversely affected.
 
 If running against a remote instance:
 - specify `uptimeRemote` for ssh, to determine it's loadavg via `ssh $uptimeRemote uptime`
