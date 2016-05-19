@@ -10,8 +10,8 @@ We know we must avoid `redis-cli keys '*'` especially on production servers with
 Here is a Redis scanner aliased as `redis-scan` to use `SCAN` iteratively.
 
 Extra features:
-- match type of keys e.g. `@list`
-- perform an "each" command on each matching key e.g. `llen`
+- match type of keys e.g. string, list, zset, set, hash
+- perform a command on each matching key e.g. `llen`
 
 It's brand new and untested, so please test on a disposable VM against a disposable local Redis instance, in case it trashes your Redis keys. As per the ISC license, the author disclaims any responsibility for any unfortunate events resulting from the disastrous use of this bash function ;)
 

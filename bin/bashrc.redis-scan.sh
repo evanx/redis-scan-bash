@@ -1,6 +1,8 @@
 
 RedisScan_clean() {
   rm -f ~/tmp/redis-scan/${$}*
+  local findCount=`find ~/tmp/redis-scan -mtime +1 -type f | wc -l`
+  [ $findCount -gt 0 ] && rhwarn "found $findCount old files in ~/tmp/redis-scan"
   find ~/tmp/redis-scan -mtime +1 -type f -delete
 }
 
@@ -10,6 +12,7 @@ RedisScan() { # scan command with sleep between iterations
   local eachCommandSleep=${eachCommandSleep:-.025} # sleep 25ms between each command
   local loadavgLimit=${loadavgLimit:-1} # sleep while loadavg above this threshold
   local loadavgKey=${loadavgKey:-''} # ascertain loadavg from Redis key
+  local uptimeRemote=${uptimeRemote:-''} # ascertain loadavg via ssh
   rhdebug "redis-scan args: ${*}"
   mkdir -p ~/tmp/redis-scan
   local tmp=~/tmp/redis-scan/$$
