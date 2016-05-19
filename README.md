@@ -141,11 +141,30 @@ local loadavgKey=${loadavgKey:-''} # ascertain loadavg from Redis key
 local uptimeRemote=${uptimeRemote:-''} # ssh remote with 'uptime' command access
 ```
 
-#### loadavg
-
 So the defaults can be overridden via the command-line passing, or via shell `export`
 
-You can roughly work out how long a full scan will take by timing the run for 1000 keys, and factoring the time for the total number of keys. If it's too long, you can override the settings `scanSleep` and `eachCommandSleep` with shorter durations. However, you should monitor your system during these runs to ensure it's not too adversely affected.
+
+#### Long migration runs
+
+Consider that the script is being applied to change the expiry of a large number of keys.
+
+You can roughly work out how long a full scan will take by timing the run for 1000 keys, and factoring the time for the total number of keys. If it's too many days perhaps, you can override the settings `scanSleep` and `eachCommandSleep` with shorter durations. However, you should monitor your system during these runs to ensure it's not too adversely affected.
+
+Later we might support the following:
+```shell
+redis-scan match 'article:*' -- sadd scan:out
+```
+where we add all matching keys to a set.
+
+Then we `spop` from that set:
+```
+redis-scan spop scan:out -- <mutate>
+```
+
+Then rather can decrease the sleep times, we could run multiple concurrent `redis-scan spop` processes.
+
+
+#### Remote loadavg
 
 If running against a remote instance:
 - specify `uptimeRemote` for ssh, to determine its loadavg via `ssh $uptimeRemote uptime`
