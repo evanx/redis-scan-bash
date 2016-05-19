@@ -7,39 +7,17 @@ We know we must avoid `redis-cli keys '*'` especially on production servers with
 
 ### Solution
 
-Here is a Redis scanner intended for `~/.bashrc` aliased as `redis-scan`
+Here is a Redis scanner aliased as `redis-scan` to use `SCAN` iteratively.
+
+Extra features:
+- match type of keys e.g. `@list`
+- perform an "each" command on each matching key e.g. `llen`
 
 It's brand new and untested, so please test on a disposable VM against a disposable local Redis instance, in case it trashes your Redis keys. As per the ISC license, the author disclaims any responsibility for any unfortunate events resulting from the disastrous use of this bash function ;)
 
 Let me know any issues via Twitter (https://twitter.com/@evanxsummers) or open an issue on Github.
 
 <img src="https://evanx.github.io/images/rquery/redis-scan-bash-featured.png">
-
-### Implementation overview
-
-We want to use `SCAN` (with a cursor), and also sleeping (default 250ms) before fetching the next batch, so we allow other Redis clients to be serviced regularly while we sleep.
-
-Incidently, it will also sleep while the current load average is above the default limit (1) so that whatever we are doing doesn't further overload our machine.
-
-However when accessing a remote Redis instance via `-h` we might be clobbering that. So the script checks the `slowlog` length between batches and if it increases, then sleeps some more to offer some relief.
-
-Currently we support the following "each" commands of key types:
-- key: `type ttl` `persist expire del`
-- string: `get`
-- set: `scard smembers sscan` 
-- zset: `zrange zrevrange zscan` 
-- list: `llen lrange` 
-- hash: `hlen hgetall hkeys hscan` 
-
-So `redis-scan` can be used to print the content of matching keys: 
-- meta info: `type ttl`
-- collection sizes: `llen hlen scard zcard`
-- collection values: `lrange hgetall smembers zrevrange`
-
-Also `redis-scan` can be used for some mutative operations on matching keys: 
-- change or remove expiry: `expire persist`
-- delete: `del`
-
 
 ### Examples
 
@@ -98,7 +76,7 @@ redis-scan @set -- type
 ```
 
 Print the first five (left) elements of all list keys:
-```shell 
+```shell
 redis-scan -- lrange 0 4
 ```
 
@@ -133,10 +111,72 @@ redis-scan @hash @nolimit match 'some keys' -- ttl @commit
 ```
 where the `@` directives can be specified before or after the double-dash delimiter.
 
+The scan sleep duration can be changed as follows:
+```shell
+scanSleep=1.5 redis-scan
+```
+where the duration is in seconds, with decimal digits allowed, as per the `sleep` shell command.
 
-### Implementation
 
-See: https://github.com/evanx/redis-scan-bash/tree/master/bin
+### Performance considerations
+
+When we have a large number of matching keys, and are performing a `type` check and executing a command on each key e.g. `expire,` we could impact the server and other clients, so we mitigate this:
+
+- by default there is an `eachLimit` of 1000 keys scanned, then exit with error code 1
+- before `SCAN` with the next cursor, sleep for 5ms (hard-coded)
+- before key type check, sleep for 5ms (hard-coded)
+- additionally before next scan sleep for `scanSleep` (default duration of 250ms)
+- if the slowlog length increases, double the sleep time e.g. from 250ms to 500ms
+- sleep `eachCommandSleep` (25ms) before any specified each command is executed
+- while the load average (truncated integer) is above `loadavgLimit` sleep in a loop to wait until its below `2.0`
+- if a `loadavgKey` passed, then ascertain the current load average from that Redis key
+
+The defaults can be overridden via the command-line, or via shell `export`
+
+```shell
+local eachLimit=${eachLimit:-1000} # limit of keys to scan, pass 0 to disable
+local scanSleep=${scanSleep:-.250} # sleep 250ms between each scan
+local eachCommandSleep=${eachCommandSleep:-.025} # sleep 25ms between each command
+local loadavgLimit=${loadavgLimit:-1} # sleep while loadavg above this threshold
+local loadavgKey=${loadavgKey:-''} # ascertain loadavg from Redis key
+local uptimeRemote=${uptimeRemote:-''} # ssh remote with 'uptime' command access
+```
+
+You can roughly work out how long a full scan will take by timing the run for 1000 keys, and factoring the time for the total number of keys. If it's too long, you can override the settings `scanSleep` and `eachCommandSleep` with shorter durations. However, you should monitor your system during these runs to ensure it's not being too adversely affected.
+
+If running against a remote instance:
+- specify `uptimeRemote` for ssh, to determine it's loadavg via `ssh $uptimeRemote uptime`
+- specify `loadavgKey` to read the load average from Redis
+
+When using `loadavgKey` you could run a minutely cron job on the Redis host:
+```shell
+minute=`date +%M`
+while [ $minute -eq `date +%M` ]
+do
+  redis-cli setex 'scan:loadavg' 90 `cat /proc/loadavg | cut -d'.' -f1 | grep [0-9]` | grep -v OK
+  sleep 13
+done
+```
+where `13` is choosen since it has a factor just exceeding 60 seconds, and when the minute changes we exit.
+
+Alternatively an ssh remote can be specified for `uptime` perhaps via an ssh forced command. The script will then ssh to the remote Redis host to get the loadavg via the `uptime` command as follows:
+```shell
+  ssh $uptimeRemote uptime | sed -n 's/.* load average: \([0-9]*\)\..*/\1/p'
+```
+#### Each commands
+
+Currently we support the following "each" commands:
+- key meta data: `type` `ttl`
+- key expiry and deletion: `persist` `expire` `del`
+- string: `get`
+- set: `scard smembers sscan`
+- zset: `zrange zrevrange zscan`
+- list: `llen lrange`
+- hash: `hlen hgetall hkeys hscan`
+
+However the scan commands must have cursor `0` i.e. just the first batch
+
+### Installation
 
 Let's grab the repo into a `tmp` directory.
 ```shell
@@ -173,7 +213,7 @@ Later you can drop the following two lines into your `~/.bashrc`
 where this assumes that the repo has been cloned to `~/redis-scan-bash`
 
 
-### Troubleshooting 
+### Troubleshooting
 
 To enable debug logging:
 ```shell
@@ -192,18 +232,18 @@ export RHLEVEL=info
 
 ### Upcoming refactor
 
-I'll be refactoring to externalise the `RedisScan` function from `bashrc` 
+I'll be refactoring to externalise the `RedisScan` function from `bashrc`
 
 Then it can be included in your `PATH` or aliased in `bashrc` as follows:
 ```shell
 alias redis-scan=~/redis-scan-bash/bin/redis-scan.sh
 ```
 
-Then the script can `set -e` i.e. exit on error, with an exit trap to cleanup. Also then it can be split into multiple functions to be more readable. 
+Then the script can `set -e` i.e. exit on error, with an exit trap to cleanup. Also then it can be split into multiple functions to be more readable.
 
 It was originally intended to be a simple function that I would paste into `bashrc` but it became bigger than expected.
 
-#### set -e 
+#### set -e
 
 By the way, I'm a firm believer that bash scripts should `set -e` from the outset:
 - we must handle nonzero returns, otherwise the script will exit
@@ -213,7 +253,7 @@ By the way, I'm a firm believer that bash scripts should `set -e` from the outse
 This enforces the good practice of handling errors, and vastly improves the robustness of bash scripts.
 
 In development/testing:
-- aborts force us to handle typical errors 
+- aborts force us to handle typical errors
 
 In production:
 - we abort before any damage is done

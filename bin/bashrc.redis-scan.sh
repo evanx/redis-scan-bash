@@ -1,13 +1,20 @@
 
 RedisScan_clean() {
-  rm -f ~/tmp/redis-scan/$$
+  rm -f ~/tmp/redis-scan/${$}*
+  find ~/tmp/redis-scan -mtime +1 -type f -delete
 }
 
 RedisScan() { # scan command with sleep between iterations
+  local eachLimit=${eachLimit:-1000} # limit of keys to scan, pass 0 to disable
+  local scanSleep=${scanSleep:-.250} # sleep 250ms between each scan
+  local eachCommandSleep=${eachCommandSleep:-.025} # sleep 25ms between each command
+  local loadavgLimit=${loadavgLimit:-1} # sleep while loadavg above this threshold
+  local loadavgKey=${loadavgKey:-''} # ascertain loadavg from Redis key
   rhdebug "redis-scan args: ${*}"
   mkdir -p ~/tmp/redis-scan
   local tmp=~/tmp/redis-scan/$$
   rhdebug "tmp $tmp"
+  which bc > /dev/null || rhwarn 'Please install: bc'
   local keyScanCommands='sscan zscan hscan'
   local scanCommands='scan sscan zscan hscan'
   local matchTypes='string set zset list hash any' # 'any' for testing
@@ -25,10 +32,7 @@ RedisScan() { # scan command with sleep between iterations
     eachCommands="$eachCommands ${typeEachCommands[$keyType]}"
   done
   rhdebug "eachCommands $eachCommands"
-  local sleep=${sleep:=.250}
-  local loadavgLimit=${loadavgLimit:=1}
   local commit=${commit:=0}
-  local eachLimit=${eachLimit:=1000}
   local cursor=${cursor:=0}
   local redisArgs=''
   local matchType=''
@@ -37,7 +41,7 @@ RedisScan() { # scan command with sleep between iterations
   local scanCommand='scan'
   local scanKey=''
   local -a scanArgs=()
-  rhdebug "sleep: $sleep, loadavgLimit: $loadavgLimit, eachLimit: $eachLimit, args:" "$@"
+  rhdebug "sleep: $scanSleep, loadavgLimit: $loadavgLimit, eachLimit: $eachLimit, args:" "$@"
   # check initial arg for dbn
   if [ $# -eq 0 ]
   then
@@ -245,7 +249,7 @@ RedisScan() { # scan command with sleep between iterations
     fi
     while [ $# -gt 0 ]
     do
-      if printf '%s' "$arg" | grep -q '^@'
+      if [[ "$arg" =~ ^@ ]]
       then
         local argt=`echo "$arg" | tail -c+2`
         if [ $argt = 'commit' ]
@@ -281,9 +285,9 @@ RedisScan() { # scan command with sleep between iterations
     fi
     if [ ${#matchType} -gt 0 ]
     then
-      rhinfo "type: @$matchType, eachLimit: $eachLimit, commit: $commit,  sleep: $sleep, loadavgMax: $loadavgMax"
+      rhinfo "type: @$matchType, eachLimit: $eachLimit, commit: $commit, sleep: $scanSleep, loadavgMax: $loadavgMax"
     else
-      rhinfo "eachLimit: $eachLimit, commit: $commit, sleep: $sleep, loadavgMax: $loadavgMax"
+      rhinfo "eachLimit: $eachLimit, commit: $commit, sleep: $scanSleep, loadavgMax: $loadavgMax"
     fi
     rhwarn 'each:' redis-cli$redisArgs $eachCommand KEY$eachArgs
     if [ $commit -eq 1 ]
@@ -304,14 +308,21 @@ RedisScan() { # scan command with sleep between iterations
   local cursorCount=0
   local stime=`date +%s`
   local slowlogLen=`redis-cli$redisArgs slowlog len`
+  if ! [[ "$slowlogLen" =~ ^[0-9][0-9]*$ ]]
+  then
+     rherror "redis-cli$redisArgs slowlog len"
+     RedisScan_clean
+     return $LINENO
+  fi
   rhdebug "redis-cli$redisArgs slowlog len # $slowlogLen"
   while [ true ]
   do
+    sleep .005 # hard-coded minimum scan sleep, also $scanSleep below
     if [ $eachLimit -gt 0 -a $keyCount -gt $eachLimit ]
     then
       rherror "Limit reached: eachLimit $eachLimit"
       RedisScan_clean
-      return $LINENO
+      return 1 # special exit code
     fi
     local scanArgsString=''
     if [ ${#scanArgs[@]} -eq 0 ]
@@ -344,13 +355,14 @@ RedisScan() { # scan command with sleep between iterations
     then
       if [ `tail -n +2 $tmp | sed '/^$/d' | wc -l` -gt 0 ]
       then
-        tail -n +2 $tmp 
+        tail -n +2 $tmp
       fi
     else
       for key in `tail -n +2 $tmp`
       do
         if [ ${#matchType} -gt 0 ]
         then
+           sleep .005 # hard-coded minimum sleep, also $scanSleep below
           local keyType=`redis-cli$redisArgs type $key`
           if [ $matchType != 'any' -a $keyType != $matchType ]
           then
@@ -368,13 +380,15 @@ RedisScan() { # scan command with sleep between iterations
           rhinfo redis-cli$redisArgs $eachCommand $key$eachArgs
           if [ $commit -eq 1 ] || echo " $safeEachCommands " | grep -q " $eachCommand "
           then
-            redis-cli$redisArgs $eachCommand $key$eachArgs
-            if [ $? -ne 0 ]
+            sleep $eachCommandSleep
+            redis-cli$redisArgs $eachCommand $key$eachArgs > $tmp.each
+            if [ $? -ne 0 ] || head -1 $tmp.each | grep -q '^(error)\|^WRONGTYPE\|^Unrecognized option\|^Could not connect'
             then
-              rherror "redis-cli$redisArgs $eachCommand $key$eachArgs"
+              cat $tmp.each
               RedisScan_clean
               return $LINENO
             fi
+            cat $tmp.each
           fi
         fi
       done
@@ -384,12 +398,8 @@ RedisScan() { # scan command with sleep between iterations
       rhinfo 'OK'
       break
     fi
-    sleep $sleep # sleep to alleviate the load on Redis and the server
-    while cat /proc/loadavg | grep -qv "^[0-${loadavgLimit}]"
-    do
-      rhwarn loadavg `cat /proc/loadavg | cut -f1 -d' '`
-      sleep 5 # sleep while load is too high
-    done
+    sleep $scanSleep # sleep to alleviate the load on this (local) server
+    # check slowlog
     local _slowlogLen=`redis-cli$redisArgs slowlog len`
     if ! echo "$_slowlogLen" | grep -q '^[0-9][0-9]*$'
     then
@@ -399,10 +409,65 @@ RedisScan() { # scan command with sleep between iterations
     fi
     if [ $_slowlogLen -ne $slowlogLen ]
     then
-      rhwarn "slowlog length was $slowlogLen, now $_slowlogLen"
+      if which bc > /dev/null
+      then
+        scanSleep=`echo "scale=3; 2*$scanSleep" | bc`
+      elif which python > /dev/null
+      then
+        scanSleep=`python -c "print 2*$scanSleep"`
+      fi
       slowlogLen=$_slowlogLen
-      sleep 5 # sleep more
+      rhwarn "slowlog length was $slowlogLen, now $_slowlogLen, scanSleep now $scanSleep"
+      sleep 5 # sleep
     fi
+    if cat /proc/loadavg | grep -q "^[0-${loadavgLimit}]\."
+    then
+      if [ -n "$loadavgKey" ]
+      then
+        while [ 1 ]
+        do
+          local loadavg=`redis-cli$redisArgs get "$loadavgKey" | cut -d'.' -f1 | grep '^[0-9][0-9]*$' || echo -n ''`
+          rhdebug redis-cli$redisArgs get "$loadavgKey" "[$loadavg]"
+          if [ -z "$loadavg" ]
+          then
+            rhwarn 'FAILED' redis-cli$redisArgs get "$loadavgKey"
+            sleep 15 # sleep
+          elif [ $loadavg -gt $loadavgLimit ]
+          then
+            rhwarn redis-cli$redisArgs get "$loadavgKey" "-- $loadavg"
+            sleep 15 # sleep
+            continue
+          fi
+          break
+        done
+      elif [ -n "$uptimeRemote" ]
+      then
+        while [ 1 ]
+        do
+          rhdebug "ssh $uptimeRemote uptime"
+          local loadavg=`ssh "$uptimeRemote" uptime 2>&1 | tee $tmp.uptime |
+             sed -n 's/.* load average: \([0-9]*\)\..*/\1/p' | grep '^[0-9][0-9]*$' || echo -n ''`
+          if [ -z "$loadavg" ]
+          then
+            rhwarn "ssh $uptimeRemote uptime"
+            cat $tmp.uptime
+            sleep 15 # sleep
+          elif [ $loadavg -gt $loadavgLimit ]
+          then
+            rhwarn redis-cli$redisArgs get "$loadavgKey" -- $loadavg
+            sleep 15 # sleep
+            continue
+          fi
+          rhdebug "ssh $uptimeRemote uptime -- loadavg $loadavg"
+          break
+        done
+      fi
+    fi
+    while cat /proc/loadavg | grep -qv "^[0-${loadavgLimit}]\."
+    do
+      rhwarn loadavg `cat /proc/loadavg | cut -f1 -d' '`
+      sleep 8 # sleep while load is too high
+    done
   done
   RedisScan_clean
 }

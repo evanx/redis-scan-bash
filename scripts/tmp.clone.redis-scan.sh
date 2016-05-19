@@ -17,8 +17,8 @@ set -u -e
 
 cd ~/tmp/redis-scan-bash
 
-source bin/bashrc.rhlogging.sh
-source bin/bashrc.redis-scan.sh
+. bin/bashrc.rhlogging.sh
+. bin/bashrc.redis-scan.sh
 
 redis-scan
 redis-scan @set
