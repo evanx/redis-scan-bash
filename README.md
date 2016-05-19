@@ -146,7 +146,7 @@ local uptimeRemote=${uptimeRemote:-''} # ssh remote with 'uptime' command access
 You can roughly work out how long a full scan will take by timing the run for 1000 keys, and factoring the time for the total number of keys. If it's too long, you can override the settings `scanSleep` and `eachCommandSleep` with shorter durations. However, you should monitor your system during these runs to ensure it's not too adversely affected.
 
 If running against a remote instance:
-- specify `uptimeRemote` for ssh, to determine it's loadavg via `ssh $uptimeRemote uptime`
+- specify `uptimeRemote` for ssh, to determine its loadavg via `ssh $uptimeRemote uptime`
 - specify `loadavgKey` to read the load average from Redis
 
 When using `loadavgKey` you could run a minutely cron job on the Redis host:
