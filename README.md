@@ -162,21 +162,25 @@ If running against a remote instance, you can:
 
 Then the script can pause when the load average of the remote Redis host is high.
 
-When using `loadavgKey` you could run a minutely cron job on the Redis host:
+##### uptimeRemote
+
+An ssh remote `user@host` can be specified for `uptime` perhaps via an ssh forced command. The script will then ssh to the remote Redis host to get the loadavg via the `uptime` command as follows:
+```shell
+  ssh $uptimeRemote uptime | sed -n 's/.* load average: \([0-9]*\)\..*/\1/p'
+```
+
+##### loadavgKey
+
+Alternatively when using `loadavgKey` you could run a minutely cron job on the Redis host:
 ```shell
 minute=`date +%M`
-while [ $minute -eq `date +%M` ]
+while [ $minute -eq `date +%M` ] # the minute of the clock is unchanged
 do
   redis-cli setex 'scan:loadavg' 90 `cat /proc/loadavg | cut -d'.' -f1 | grep [0-9]` | grep -v OK
   sleep 13
 done
 ```
 where `13` is choosen since it has a factor just exceeding 60 seconds, and when the minute changes we exit.
-
-Alternatively an ssh remote can be specified for `uptime` perhaps via an ssh forced command. The script will then ssh to the remote Redis host to get the loadavg via the `uptime` command as follows:
-```shell
-  ssh $uptimeRemote uptime | sed -n 's/.* load average: \([0-9]*\)\..*/\1/p'
-```
 
 
 #### Each commands
