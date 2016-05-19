@@ -46,7 +46,7 @@ redis-scan 'article:*'
 
 We can filter the keys by type using an `@` prefix (rather than dashes):
 ```shell
-redis-scan @set
+redis-scan @set match 'feed:*'
 ```
 where supported types are: `string, list, hash, set, zset.`
 
