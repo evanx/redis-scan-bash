@@ -46,18 +46,18 @@ redis-scan 'article:*'
 
 We can filter the keys by type using an `@` prefix (rather than dashes):
 ```shell
-redis-scan @set match 'feed:*'
+redis-scan match 'feed:*' @set
 ```
 where supported types are: `string, list, hash, set, zset.`
 
 
 #### Each command
 
-We can specify an "each" command to be executed for each key on the same Redis instance:
+We can specify an "each" command to be executed for each matching key:
 ```shell
 redis-scan 13 @hash -- hlen
 ```
-where we use a double-dash to delimit the scan arguments and the `each` command. In this case we execute `hlen` against each key of type `hash`
+where we use a double-dash to delimit the `each` command. In this case we execute `hlen` against each key of type `hash`
 
 Actually the script knows that `hlen` is a hashes command, and so `@hash` can be omitted:
 ```shell
@@ -150,18 +150,7 @@ Consider that the script is being applied to change the expiry of a large number
 
 You can roughly work out how long a full scan will take by timing the run for 1000 keys, and factoring the time for the total number of keys. If it's too many days perhaps, you can override the settings `scanSleep` and `eachCommandSleep` with shorter durations. However, you should monitor your system during these runs to ensure it's not too adversely affected.
 
-Later we might support the following:
-```shell
-redis-scan match 'article:*' -- sadd scan:out
-```
-where we add all matching keys to a set.
-
-Then we `spop` from that set:
-```
-redis-scan spop scan:out -- <mutate>
-```
-
-Then rather can decrease the sleep times, we could run multiple concurrent `redis-scan spop` processes.
+Having said that, usually one wants longer runs with conversative sleep times to minimise the impact on production machines.
 
 
 #### Remote loadavg
