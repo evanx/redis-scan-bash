@@ -39,7 +39,7 @@ redis-scan 0 match 'demo:*'
 ```
 If a parameter contains an asterisk, then `match` is assumed:
 ```shell
-redis-scan '*'
+redis-scan 'article:*'
 ```
 
 #### Match type
