@@ -133,6 +133,7 @@ When we have a large number of matching keys, and are performing a `type` check 
 
 The defaults can be overridden via the command-line, or via shell `export`
 
+The defaults themselves are set in the script, and overridden, as follows:
 ```shell
 local eachLimit=${eachLimit:-1000} # limit of keys to scan, pass 0 to disable
 local scanSleep=${scanSleep:-.250} # sleep 250ms between each scan
