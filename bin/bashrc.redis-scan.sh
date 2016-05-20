@@ -230,13 +230,6 @@ RedisScan() { # scan command with sleep between iterations
         RedisScan_clean
         return $LINENO
       fi
-    else
-      if [ $# -gt 0 ]
-      then
-        rherror "Command (each) has unexpected args: $eachCommand"
-        RedisScan_clean
-        return $LINENO
-      fi
     fi
     if [ ${#matchType} -eq 0 ]
     then
@@ -252,6 +245,8 @@ RedisScan() { # scan command with sleep between iterations
     fi
     while [ $# -gt 0 ]
     do
+      local arg="$1"
+      shift
       if [[ "$arg" =~ ^@ ]]
       then
         local argt=`echo "$arg" | tail -c+2`
@@ -271,14 +266,33 @@ RedisScan() { # scan command with sleep between iterations
           fi
           rhdebug "matchType $matchType"
         fi
-      elif printf '%s' "$1" | grep -q '^-'
+      elif printf '%s' "$arg" | grep -q '^-'
       then
-        rherror "Unsupported each arg: $1"
+        rherror "Unsupported each arg: $arg"
         RedisScan_clean
         return $LINENO
+      elif printf '%s' "$arg" | grep -q '^@'
+      then
+        local argt=`echo "$arg" | tail -c+2`
+        if [ $argt = 'commit' ]
+        then
+          commit=1
+        elif [ $argt = 'nolimit' ]
+        then
+          eachLimit=0
+        else
+          matchType="$argt"
+          if echo "$matchTypes" | grep -qv "$matchType"
+          then
+            rherror "Invalid specified key type: $matchType. Expecting one of: $matchTypes"
+            RedisScan_clean
+            return $LINENO
+          fi
+          rhdebug "matchType $matchType"
+        fi
+      else
+        eachArgs="$eachArgs $arg"
       fi
-      eachArgs="$eachArgs $1"
-      shift
     done
     if [ ${#scanArgs[@]} -eq 0 ]
     then
