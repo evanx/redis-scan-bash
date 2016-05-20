@@ -114,7 +114,7 @@ RedisScan() { # scan command with sleep between iterations
         fi
       fi
       break
-    elif [ $arg = '--' ]
+    elif [ "$arg" = '--' ]
     then
       eachCommand="$1"
       if ! shift
