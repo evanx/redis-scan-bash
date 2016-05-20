@@ -50,9 +50,16 @@ RedisScan() { # scan command with sleep between iterations
   then
     scanCommand='scan'
   else
-    if echo "$1" | grep -q "^[0-9][0-9]*$"
+    if echo "$1" | grep -q "^[0-9][0-5]\{0,1\}$"
     then
-      local dbn=$1
+      rherror 'Use @dbn for the db number'
+      local dbn="$1"
+      shift
+      redisArgs=" -n $dbn"
+      rhinfo "dbn $dbn"
+    elif echo "$1" | grep -q "^@[0-9][0-5]\{0,1\}$"
+    then
+      local dbn=`echo "$1" | tail -c+2`
       shift
       redisArgs=" -n $dbn"
       rhinfo "dbn $dbn"
@@ -200,6 +207,9 @@ RedisScan() { # scan command with sleep between iterations
         shift
         rhdebug eachCommand $eachCommand
         break
+      elif printf '%s' "$arg" | grep -q '*'
+      then
+        scanArgs+=('match' "$arg")
       else
         scanArgs+=("$arg")
       fi

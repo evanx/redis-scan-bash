@@ -27,15 +27,15 @@ redis-scan
 ```
 Actually, there is a `eachLimit` (default 1000) so it will only scan a 1000 keys (in batches, with sleeps inbetween), and exit with an error message "Limit reached."
 
-If the first parameter is a number, it is taken as the database number:
+If the first parameter is a number prefixed with `@` then it is taken as the database number:
 ```shell
-redis-scan 2
+redis-scan @2
 ```
 where this scans database number `2` via `redis-cli -n 2`
 
 We can and should use `match` to reduce the number of keys.
 ```shell
-redis-scan 0 match 'demo:*'
+redis-scan match 'demo:*'
 ```
 If a parameter contains an asterisk, then `match` is assumed:
 ```shell
@@ -55,13 +55,13 @@ where supported types are: `string, list, hash, set, zset.`
 
 We can specify an "each" command to be executed for each matching key:
 ```shell
-redis-scan 13 @hash -- hlen
+redis-scan @13 @hash -- hlen
 ```
 where we use a double-dash to delimit the `each` command. In this case we execute `hlen` against each key of type `hash`
 
 Actually the script knows that `hlen` is a hashes command, and so `@hash` can be omitted:
 ```shell
-redis-scan 13 -- hlen
+redis-scan @13 -- hlen
 ```
 where this will scan all keys in db `13,` and for each hashes key, print its `hlen.`
 
