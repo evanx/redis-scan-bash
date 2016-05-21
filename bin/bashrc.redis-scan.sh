@@ -422,6 +422,15 @@ RedisScan() { # scan command with sleep between iterations
               for key in `cat $tmp.each | sed -n -e '1~2p'`
               do
                 value=`cat $tmp.each | grep "^${key}$" -A1 | tail -1`
+                if echo "$value" | grep -q '^{.*}$'
+                then
+                  local json=`echo "$value" | python -mjson.tool 2>/dev/null || echo ''`
+                  if [ -n "$json" ]
+                  then
+                    value="$json"
+                  fi
+                fi
+                value=`echo "$value" | cut -b1-125`
                 rhprop $key "$value"
               done
             else
