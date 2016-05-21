@@ -391,7 +391,7 @@ RedisScan() { # scan command with sleep between iterations
       do
         if [ ${#matchType} -gt 0 ]
         then
-           sleep .005 # hard-coded minimum sleep, also $scanSleep below
+          sleep .005 # hard-coded minimum sleep, also $scanSleep below
           local keyType=`redis-cli$redisArgs type $key`
           if [ $matchType != 'any' -a $keyType != $matchType ]
           then
@@ -413,11 +413,20 @@ RedisScan() { # scan command with sleep between iterations
             redis-cli$redisArgs $eachCommand $key$eachArgs > $tmp.each
             if [ $? -ne 0 ] || head -1 $tmp.each | grep -q '^(error)\|^WRONGTYPE\|^Unrecognized option\|^Could not connect'
             then
-              cat $tmp.each
+              cat $tmp.each 
               RedisScan_clean
               return $LINENO
             fi
-            cat $tmp.each
+            if [ -t 1 -a "$eachCommand" = "hgetall" ]
+            then
+              for key in `cat $tmp.each | sed -n -e '1~2p'`
+              do
+                value=`cat $tmp.each | grep "^${key}$" -A1 | tail -1`
+                rhprop $key "$value"
+              done
+            else
+              cat $tmp.each
+            fi
           fi
         fi
       done
