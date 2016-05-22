@@ -248,6 +248,10 @@ export RHLEVEL=info
 ### Further plans
 
 - regex for filtering keys
+- refactor as a standalone bash script not necessarily via bashrc
+- write a Node version 
+
+When a future Node version has V8 supporting async/await so Babel not is required and start up time is quick.
 
 
 ### Upcoming refactor
