@@ -35,8 +35,9 @@ RedisScan() { # scan command with sleep between iterations
     eachCommands="$eachCommands ${typeEachCommands[$keyType]}"
   done
   rhdebug "eachCommands $eachCommands"
-  local commit=${commit:=0}
-  local cursor=${cursor:=0}
+  local commit=${commit-0}
+  local cursor=${cursor-0}
+  local scanCount=${scanCount-0}
   local redisArgs=''
   local matchType=''
   local eachCommand=''
@@ -129,17 +130,6 @@ RedisScan() { # scan command with sleep between iterations
         fi
       fi
       break
-    elif [ "$arg" = '--' ]
-    then
-      eachCommand="$1"
-      if ! shift
-      then
-        rherror "missing each command [$@]"
-        RedisScan_clean
-        return $LINENO
-      fi
-      rhdebug "each $eachCommand [$@]"
-      break
     elif printf '%s' "$arg" | grep -qi '^match$'
     then
       if [ $# -eq 0 ]
@@ -157,6 +147,36 @@ RedisScan() { # scan command with sleep between iterations
     then
       scanArgs+=('match' "$arg")
       rhdebug scanArgs "${scanArgs[@]}"
+      break
+    elif printf '%s' "$arg" | grep -qi '^count$'
+    then
+      if [ $# -eq 0 ]
+      then
+        rherror "Missing count number after 'count'"
+        RedisScan_clean
+        return $LINENO
+      fi
+      if echo "$1" | grep -qv '^[1-9][0-9]*$'
+      then
+        rherror "Invalid count number: $1"
+        RedisScan_clean
+        return $LINENO
+      fi
+      scanCount="$1"
+      shift
+      scanArgs+=("$arg" "$scanCount")
+      rhdebug scanArgs "${scanArgs[@]}"
+      break
+    elif [ "$arg" = '--' ]
+    then
+      eachCommand="$1"
+      if ! shift
+      then
+        rherror "missing each command [$@]"
+        RedisScan_clean
+        return $LINENO
+      fi
+      rhdebug "each $eachCommand [$@]"
       break
     else
       redisArgs="$redisArgs $arg"
@@ -344,9 +364,9 @@ RedisScan() { # scan command with sleep between iterations
     fi
     if [ ${#matchType} -gt 0 ]
     then
-      rhinfo "type: @$matchType, eachLimit: $eachLimit, commit: $commit, sleep: $scanSleep, loadavgLimit: $loadavgLimit"
+      rhinfo "@$matchType eachLimit=$eachLimit commit=$commit scanSleep=$scanSleep loadavgLimit=$loadavgLimit"
     else
-      rhinfo "eachLimit: $eachLimit, commit: $commit, sleep: $scanSleep, loadavgLimit: $loadavgLimit"
+      rhinfo "eachLimit=$eachLimit commit=$commit scanSleep=$scanSleep loadavgLimit=$loadavgLimit"
     fi
     rhwarn 'each:' redis-cli$redisArgs $eachCommand KEY$eachArgs
     if [ $commit -eq 1 ]

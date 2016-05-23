@@ -96,17 +96,17 @@ Print hashes:
 redis-scan match 'rp:*' -- hgetall
 ```
 
-#### JSON formatting 
+#### JSON formatting
 
 Note that by default the script will try to format values resembling JSON, using `python` and also `pygmentize` if available.
 
 You can install `pygmentize` as follows:
-```shell 
+```shell
 sudo easy_install pygmentize
 ```
 where we assume you have `python` and its `easy_install` utility installed on your system.
 
-<img src="https://evanx.github.io/images/redis-scan-bash/redis-scan-hgetall-json.png">
+<img src="https://redishub.com/evanx.github.io/images/redis-scan-bash/redis-scan-hgetall-json.png">
 
 
 #### Settings
@@ -189,7 +189,7 @@ Then the script can pause when the load average of the remote Redis host is high
 
 ##### uptimeRemote
 
-An ssh remote `user@host` can be specified for `uptime.` This access could be via an ssh forced command. 
+An ssh remote `user@host` can be specified for `uptime.` This access could be via an ssh forced command.
 
 Test as follows:
 ```shell
@@ -276,7 +276,7 @@ export RH_LEVEL=info
 
 - regex for filtering keys
 - refactor as a standalone bash script not necessarily via bashrc
-- write a Node version 
+- write a Node version
 
 When a future Node version has V8 supporting async/await so Babel not is required and start up time is quick. Then Node will be an excellent choice for console apps like this.
 
@@ -321,4 +321,3 @@ So for your next bash script, try `set -e` and persevere. It's worth it :)
 ### Further reading
 
 - https://github.com/evanx/redishub
-
