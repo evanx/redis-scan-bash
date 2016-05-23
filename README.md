@@ -294,7 +294,7 @@ In production:
 
 It's easy to reason about the state, when we know that all commands succeeded, or otherwise their nonzero returns were handled appropriately.
 
-So for your next bash script, try `set -e` and persevere. Otherwise include a warning that your bash script is typically fragile ;)
+So for your next bash script, try `set -e` and persevere. It's worth it :)
 
 
 ### Contact
