@@ -164,7 +164,9 @@ Then the script can pause when the load average of the remote Redis host is high
 
 ##### uptimeRemote
 
-An ssh remote `user@host` can be specified for `uptime` perhaps via an ssh forced command. The script will then ssh to the remote Redis host to get the loadavg via the `uptime` command as follows:
+An ssh remote `user@host` can be specified for `uptime.` This access could be via an ssh forced command. 
+
+The script will then ssh to the remote Redis host to get the loadavg via the `uptime` command as follows:
 ```shell
   ssh $uptimeRemote uptime | sed -n 's/.* load average: \([0-9]*\)\..*/\1/p'
 ```
