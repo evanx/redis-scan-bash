@@ -8,5 +8,5 @@ _pythonprint() {
   python -c "import math; print $1"
 }
 
-alias pp=_pythonprint # e.g. "pp 2+2" should print 4
+alias rhpp=_pythonprint # e.g. "rhpp 2+2" should print 4
 

@@ -91,6 +91,23 @@ Print hash keys:
 redis-scan match 'rp:*' -- hkeys
 ```
 
+Print hashes:
+```shell
+redis-scan match 'rp:*' -- hgetall
+```
+
+#### JSON formatting 
+
+Note that by default the script will try to format values resembling JSON, using `python` and also `pygmentize` if available.
+
+You can install `pygmentize` as follows:
+```shell 
+sudo easy_install pygmentize
+```
+where we assume you have `python` and its `easy_install` utility installed on your system.
+
+<img src="images/redis-scan-bash/redis-scan-hgetall-json.png">
+
 
 #### Settings
 
@@ -247,12 +264,12 @@ where this assumes that the repo has been cloned to `~/redis-scan-bash`
 
 To enable debug logging:
 ```shell
-export RHLEVEL=debug
+export RH_LEVEL=debug
 ```
 
 To disable debug logging:
 ```shell
-export RHLEVEL=info
+export RH_LEVEL=info
 ```
 
 ### Further plans

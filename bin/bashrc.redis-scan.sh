@@ -7,13 +7,13 @@ RedisScan_clean() {
 }
 
 RedisScan() { # scan command with sleep between iterations
-  local eachLimit=${eachLimit:-1000} # limit of keys to scan, pass 0 to disable
-  local scanSleep=${scanSleep:-.250} # sleep 250ms between each scan
-  local eachCommandSleep=${eachCommandSleep:-.025} # sleep 25ms between each command
-  local loadavgLimit=${loadavgLimit:-1} # sleep while local loadavg above this threshold
-  local loadavgKey=${loadavgKey:-''} # ascertain loadavg from Redis key on target instance
-  local uptimeRemote=${uptimeRemote:-''} # ascertain loadavg via ssh to remote Redis host
-  rhdebug "redis-scan args: ${*}"
+  local eachLimit=${eachLimit-1000} # limit of keys to scan, pass 0 to disable
+  local scanSleep=${scanSleep-.250} # sleep 250ms between each scan
+  local eachCommandSleep=${eachCommandSleep-.025} # sleep 25ms between each command
+  local loadavgLimit=${loadavgLimit-1} # sleep while local loadavg above this threshold
+  local loadavgKey=${loadavgKey-''} # ascertain loadavg from Redis key on target instance
+  local uptimeRemote=${uptimeRemote-''} # ascertain loadavg via ssh to remote Redis host
+  rhdebug "redis-scan args: ${*} (limit $eachLimit keys, sleep ${scanSleep})"
   mkdir -p ~/tmp/redis-scan
   local tmp=~/tmp/redis-scan/$$
   rhdebug "tmp $tmp"
@@ -338,9 +338,9 @@ RedisScan() { # scan command with sleep between iterations
     done
     if [ ${#scanArgs[@]} -eq 0 ]
     then
-      rhwarn "scan: redis-cli$redisArgs $scanCommand$scanKey $cursor"
+      rhinfo "scan: redis-cli$redisArgs $scanCommand$scanKey $cursor"
     else
-      rhwarn "scan: redis-cli$redisArgs $scanCommand$scanKey $cursor ${scanArgs[@]}"
+      rhinfo "scan: redis-cli$redisArgs $scanCommand$scanKey $cursor ${scanArgs[@]}"
     fi
     if [ ${#matchType} -gt 0 ]
     then
@@ -455,12 +455,17 @@ RedisScan() { # scan command with sleep between iterations
               for key in `cat $tmp.each | sed -n -e '1~2p'`
               do
                 value=`cat $tmp.each | grep "^${key}$" -A1 | tail -1`
-                if echo "$value" | grep -q '^{.*}$'
+                if which python > /dev/null && echo "$value" | grep -q '^{.*}$'
                 then
                   local json=`echo "$value" | python -mjson.tool 2>/dev/null || echo ''`
-                  if [ -n "$json" ]
+                  if [ -n "$json" ] 
                   then
-                    value="$json"
+                    if which pygmentize > /dev/null
+                    then
+                      value=`echo "$json" | pygmentize -l json`
+                    else
+                      value="$json"
+                    fi
                   fi
                 fi
                 value=`echo "$value" | cut -b1-125`

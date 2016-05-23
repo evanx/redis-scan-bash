@@ -4,9 +4,14 @@ rhnone() {
 }
 
 rhdebug() {
-  if [ -t 1 -a "$RHLEVEL" = 'debug' ]
+  if [ "$RH_LEVEL-" = 'debug' ]
   then
-    >&2 echo -e "\e[90m${@}\e[39m"
+    if [ -t 1 ]
+    then
+      >&2 echo -e "\e[90m${@}\e[39m"
+    else
+      >&2 echo "DEBUG ${@}"
+    fi
   fi
 }
 
@@ -44,4 +49,32 @@ rherror() {
    else
      >&2 echo "ERROR ${@}"
    fi
+}
+
+# command: rhabort $code $*
+# example: rhabort 1 @$LINENO "error message" $some
+# specify 1 (default) to limit 254. 
+# Ideally use 3..63 for custom codes
+# returns nonzero code e.g. for scripts with set -e 
+rhabort() {
+  local code=1
+  local lineno=''
+  if [ $# -gt 0 ]
+  then
+    if echo "$1" | grep -q '^[0-9][0-9]*$'
+    then
+      code=$1
+      if shift
+      then
+        if echo "$1" | grep -q '^[0-9][0-9]*$'
+        then
+          lineno=$1
+          shift
+        fi 
+      fi
+    fi
+  fi
+  rherror "ABORT $code ${*}"
+  [ $code -ge 255 ] && code=254
+  return $code
 }
