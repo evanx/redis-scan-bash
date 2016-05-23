@@ -124,7 +124,7 @@ When we have a large number of matching keys, and are performing a `type` check 
 
 - by default there is an `eachLimit` of 1000 keys scanned, then exit with error code 1
 - before `SCAN` with the next cursor, sleep for 5ms (hard-coded)
-- additionally before next scan sleep for `scanSleep` (default duration of 250ms)
+- additionally before next scan, sleep for long `scanSleep` (default duration of 250ms)
 - if the slowlog length increases, double the sleep time e.g. from 250ms to 500ms
 - before key type check, sleep for 5ms (hard-coded)
 - sleep `eachCommandSleep` (25ms) before any specified each command is executed
