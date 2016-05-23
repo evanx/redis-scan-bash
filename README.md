@@ -106,7 +106,7 @@ sudo easy_install pygmentize
 ```
 where we assume you have `python` and its `easy_install` utility installed on your system.
 
-<img src="images/redis-scan-bash/redis-scan-hgetall-json.png">
+<img src="https://evanx.github.io/images/redis-scan-bash/redis-scan-hgetall-json.png">
 
 
 #### Settings
