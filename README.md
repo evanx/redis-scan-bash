@@ -273,7 +273,7 @@ Then it can be included in your `PATH` or aliased in `bashrc` as follows:
 alias redis-scan=~/redis-scan-bash/bin/redis-scan.sh
 ```
 
-Then the script can `set -e` i.e. exit on error, with an exit trap to cleanup. Also then it can be split into multiple functions to be more readable.
+Then the script can `set -e` i.e. exit on error, with an exit trap to cleanup. Also then it can be split into multiple functions to be more readable and avoid some repetitive code.
 
 It was originally intended to be a simple function that I would paste into `bashrc` but it became bigger than expected. Consequently it has some code repetition for short term pragmatism, but which violates the DRY principle.
 
