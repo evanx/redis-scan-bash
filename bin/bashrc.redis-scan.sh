@@ -407,6 +407,7 @@ RedisScan() { # scan command with sleep between iterations
     fi
     cursor=`head -1 $tmp`
     keyCount=$[ $keyCount + `cat $tmp | wc -l` - 1 ]
+    rhdebug keyCount $keyCount
     if [ $cursorCount -eq 0 -o $[ $cursorCount % 10 ] -eq 0 ]
     then
       rhdebug "redis-cli$redisArgs $scanCommand $cursor $scanArgsString # cursor $cursor, keys $keyCount, @$matchType each [$eachCommand]"
