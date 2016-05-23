@@ -149,7 +149,7 @@ So the defaults can be overridden via the command-line passing, or via shell `ex
 
 Consider that the script is being applied to change the expiry of a large number of keys.
 
-Generally speaking, one wants conversative sleep times to minimise the impact on production machines. This might mean longer runs, e.g. overnight.
+Generally speaking, one wants conversative sleep times to minimise the impact on production machines. This might mean longer runs, e.g. overnight using `nohup.`
 
 You can roughly work out how long a full scan will take by timing the run for 1000 keys, and factoring the time for the total number of keys. If it's too many days perhaps, you can override the settings `scanSleep` and `eachCommandSleep` with shorter durations. However, you should monitor your system during these runs to ensure it's not too adversely affected.
 
