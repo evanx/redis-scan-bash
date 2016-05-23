@@ -344,9 +344,9 @@ RedisScan() { # scan command with sleep between iterations
     fi
     if [ ${#matchType} -gt 0 ]
     then
-      rhinfo "type: @$matchType, eachLimit: $eachLimit, commit: $commit, sleep: $scanSleep, loadavgMax: $loadavgMax"
+      rhinfo "type: @$matchType, eachLimit: $eachLimit, commit: $commit, sleep: $scanSleep, loadavgLimit: $loadavgLimit"
     else
-      rhinfo "eachLimit: $eachLimit, commit: $commit, sleep: $scanSleep, loadavgMax: $loadavgMax"
+      rhinfo "eachLimit: $eachLimit, commit: $commit, sleep: $scanSleep, loadavgLimit: $loadavgLimit"
     fi
     rhwarn 'each:' redis-cli$redisArgs $eachCommand KEY$eachArgs
     if [ $commit -eq 1 ]
