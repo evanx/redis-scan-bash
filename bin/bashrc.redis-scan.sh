@@ -3,16 +3,16 @@ RedisScan_clean() {
   rm -f ~/tmp/redis-scan/${$}*
   local findCount=`find ~/tmp/redis-scan -mtime +1 -type f | wc -l`
   [ $findCount -gt 0 ] && rhwarn "found $findCount old files in ~/tmp/redis-scan"
-  find ~/tmp/redis-scan -mtime +1 -type f -delete
+  find ~/tmp/redis-scan -mtime +7 -type f -delete
 }
 
 RedisScan() { # scan command with sleep between iterations
   local eachLimit=${eachLimit:-1000} # limit of keys to scan, pass 0 to disable
   local scanSleep=${scanSleep:-.250} # sleep 250ms between each scan
   local eachCommandSleep=${eachCommandSleep:-.025} # sleep 25ms between each command
-  local loadavgLimit=${loadavgLimit:-1} # sleep while loadavg above this threshold
-  local loadavgKey=${loadavgKey:-''} # ascertain loadavg from Redis key
-  local uptimeRemote=${uptimeRemote:-''} # ascertain loadavg via ssh
+  local loadavgLimit=${loadavgLimit:-1} # sleep while local loadavg above this threshold
+  local loadavgKey=${loadavgKey:-''} # ascertain loadavg from Redis key on target instance
+  local uptimeRemote=${uptimeRemote:-''} # ascertain loadavg via ssh to remote Redis host
   rhdebug "redis-scan args: ${*}"
   mkdir -p ~/tmp/redis-scan
   local tmp=~/tmp/redis-scan/$$
@@ -73,7 +73,12 @@ RedisScan() { # scan command with sleep between iterations
     if printf '%s' "$arg" | grep -q '^@'
     then
       local argt=`echo "$arg" | tail -c+2`
-      if [ $argt = 'commit' ]
+      if [ -z "$argt" ]
+      then
+        rherror "Empty directive"
+        RedisScan_clean
+        return $LINENO
+      elif [ $argt = 'commit' ]
       then
         commit=1
       elif [ $argt = 'nolimit' ]
@@ -81,7 +86,10 @@ RedisScan() { # scan command with sleep between iterations
         eachLimit=0
       else
         matchType="$argt"
-        if echo "$matchTypes" | grep -qv "$matchType"
+        if [ $matchType = 'hashes' ]
+        then
+          matchType=hash
+        elif echo "$matchTypes" | grep -qv "$matchType"
         then
           rherror "Invalid specified key type: $matchType. Expecting one of: $matchTypes"
           RedisScan_clean
@@ -179,7 +187,12 @@ RedisScan() { # scan command with sleep between iterations
       if printf '%s' "$arg" | grep -q '^@'
       then
         local argt=`echo "$arg" | tail -c+2`
-        if [ $argt = 'commit' ]
+        if [ -z "$argt" ]
+        then
+          rherror "Empty directive"
+          RedisScan_clean
+          return $LINENO
+        elif [ $argt = 'commit' ]
         then
           commit=1
         elif [ $argt = 'nolimit' ]
@@ -187,7 +200,10 @@ RedisScan() { # scan command with sleep between iterations
           eachLimit=0
         else
           matchType="$argt"
-          if echo "$matchTypes" | grep -qv "$matchType"
+          if [ $matchType = 'hashes' ]
+          then
+            matchType=hash
+          elif echo "$matchTypes" | grep -qv "$matchType"
           then
             rherror "Invalid specified key type: $matchType. Expecting one of: $matchTypes"
             RedisScan_clean
@@ -260,7 +276,12 @@ RedisScan() { # scan command with sleep between iterations
       if [[ "$arg" =~ ^@ ]]
       then
         local argt=`echo "$arg" | tail -c+2`
-        if [ $argt = 'commit' ]
+        if [ -z "$argt" ]
+        then
+          rherror "Empty directive"
+          RedisScan_clean
+          return $LINENO
+        elif [ $argt = 'commit' ]
         then
           commit=1
         elif [ $argt = 'nolimit' ]
@@ -268,7 +289,10 @@ RedisScan() { # scan command with sleep between iterations
           eachLimit=0
         else
           matchType="$argt"
-          if echo "$matchTypes" | grep -qv "$matchType"
+          if [ $matchType = 'hashes' ]
+          then
+            matchType=hash
+          elif echo "$matchTypes" | grep -qv "$matchType"
           then
             rherror "Invalid specified key type: $matchType. Expecting one of: $matchTypes"
             RedisScan_clean
@@ -284,7 +308,12 @@ RedisScan() { # scan command with sleep between iterations
       elif printf '%s' "$arg" | grep -q '^@'
       then
         local argt=`echo "$arg" | tail -c+2`
-        if [ $argt = 'commit' ]
+        if [ -z "$argt" ]
+        then
+          rherror "Empty directive"
+          RedisScan_clean
+          return $LINENO
+        elif [ $argt = 'commit' ]
         then
           commit=1
         elif [ $argt = 'nolimit' ]
@@ -292,7 +321,10 @@ RedisScan() { # scan command with sleep between iterations
           eachLimit=0
         else
           matchType="$argt"
-          if echo "$matchTypes" | grep -qv "$matchType"
+          if [ $matchType = 'hashes' ]
+          then
+            matchType=hash
+          elif echo "$matchTypes" | grep -qv "$matchType"
           then
             rherror "Invalid specified key type: $matchType. Expecting one of: $matchTypes"
             RedisScan_clean
