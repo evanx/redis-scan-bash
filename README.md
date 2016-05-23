@@ -253,7 +253,7 @@ export RHLEVEL=info
 - refactor as a standalone bash script not necessarily via bashrc
 - write a Node version 
 
-When a future Node version has V8 supporting async/await so Babel not is required and start up time is quick.
+When a future Node version has V8 supporting async/await so Babel not is required and start up time is quick. Then Node will be an excellent choice for console apps like this.
 
 
 ### Upcoming refactor
