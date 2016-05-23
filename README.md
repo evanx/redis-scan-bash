@@ -144,6 +144,14 @@ local uptimeRemote=${uptimeRemote:-''} # ssh remote with 'uptime' command access
 
 So the defaults can be overridden via the command-line passing, or via shell `export`
 
+Also note that speed can increased using `COUNT` higher than the default value of `10`
+```shell
+redis-scan 'rp:*' count 100
+```
+In this case, the `scanSleep` happens after every 100 keys rather than every 10 keys, and so the script will run 10x faster.
+
+In future the script should notice the higher count, and perhaps adapt its sleeping somehow.
+
 
 #### Long runs
 
