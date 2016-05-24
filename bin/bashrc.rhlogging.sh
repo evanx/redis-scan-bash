@@ -1,17 +1,27 @@
 
+rhinit() {
+  RH_WIDTH=`tput cols`
+}
+
+rhinit
+
 rhnone() {
   return 0
+}
+
+rhnote() {
+  if [ -t 1 ]
+  then
+    >&2 echo -e "\e[90m${@}\e[39m"
+  else
+    >&2 echo "DEBUG ${@}"
+  fi
 }
 
 rhdebug() {
   if [ "$RH_LEVEL-" = 'debug' ]
   then
-    if [ -t 1 ]
-    then
-      >&2 echo -e "\e[90m${@}\e[39m"
-    else
-      >&2 echo "DEBUG ${@}"
-    fi
+    rhnote "$@"
   fi
 }
 
@@ -49,6 +59,18 @@ rherror() {
    else
      >&2 echo "ERROR ${@}"
    fi
+}
+
+rhsection() {
+  echo
+  rhwarn `printf '%200s\n' | cut -b1-${RH_WIDTH} | tr ' ' -`
+  rhwarn "$@"
+}
+
+rhsub() {
+  echo
+  rhnote `printf '%200s\n' | cut -b1-${RH_WIDTH} | tr ' ' \.`
+  rhinfo "$@"
 }
 
 # command: rhabort $code $*
