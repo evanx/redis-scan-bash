@@ -231,15 +231,18 @@ where a sleep duration of 13 seconds is choosen, since it has a factor closely e
 
 We truncate from the decimal so it's the integer loadavg, although
 
-You can use and test our cron script as follows:
+You can test our cron script as follows:
 ```
-~/redis-scan-bash$ bash -x bin/cron.minutely.set.loadavg.redis.sh 'cron:loadavg' -n 13
+~/redis-scan-bash$ bash bin/cron.minutely.set.loadavg.redis.sh 'cron:loadavg' DBN
 ```
 But beware it will set that key and the specified Redis instance.
 
-Then into the crontab:
+Then into the crontab, listing the key and database number or numbers into which insert the key:
 ```
-* * * * * ~/redis-scan-bash/bin/cron.minutely.set.loadavg.redis.sh "cron:loadavg" -n 13
+* * * * * ~/redis-scan-bash/bin/cron.minutely.set.loadavg.redis.sh "cron:loadavg" 13
+```
+
+```
 ```
 
 #### Each commands
