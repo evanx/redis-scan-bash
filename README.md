@@ -223,12 +223,24 @@ Alternatively when using `loadavgKey` you could run a minutely cron job on the R
 minute=`date +%M`
 while [ `date +%M` -eq $minute ] # util the minute of the clock changes
 do
-  redis-cli setex 'scan:loadavg' 90 `cat /proc/loadavg | cut -d'.' -f1 | grep [0-9]` | grep -v OK
+  redis-cli -n 13 setex 'cron:loadavg' 90 `cat /proc/loadavg | cut -d' ' -f1` | grep -v OK
   sleep 13
 done
 ```
 where a sleep duration of 13 seconds is choosen, since it has a factor closely exceeding 60 seconds. When the minute changes we exit.
 
+We truncate from the decimal so it's the integer loadavg, although
+
+You can use and test our cron script as follows:
+```
+~/redis-scan-bash$ bash -x bin/cron.minutely.set.loadavg.redis.sh 'cron:loadavg' -n 13
+```
+But beware it will set that key and the specified Redis instance.
+
+Then into the crontab:
+```
+* * * * * ~/redis-scan-bash/bin/cron.minutely.set.loadavg.redis.sh "cron:loadavg" -n 13
+```
 
 #### Each commands
 
