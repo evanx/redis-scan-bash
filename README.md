@@ -216,7 +216,7 @@ Test as follows:
 Alternatively when using `loadavgKey` you could run a minutely cron job on the Redis host:
 ```shell
 minute=`date +%M`
-while [ $minute -eq `date +%M` ] # the minute of the clock is unchanged
+while [ `date +%M` -eq $minute ] # util the minute of the clock changes
 do
   redis-cli setex 'scan:loadavg' 90 `cat /proc/loadavg | cut -d'.' -f1 | grep [0-9]` | grep -v OK
   sleep 13
