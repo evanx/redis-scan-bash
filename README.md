@@ -229,8 +229,6 @@ done
 ```
 where a sleep duration of 13 seconds is choosen, since it has a factor closely exceeding 60 seconds. When the minute changes we exit.
 
-We truncate from the decimal so it's the integer loadavg, although
-
 You can test our cron script as follows:
 ```
 ~/redis-scan-bash$ bash bin/cron.minutely.set.loadavg.redis.sh 'cron:loadavg' DBN

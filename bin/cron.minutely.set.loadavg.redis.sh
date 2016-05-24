@@ -38,7 +38,7 @@ rhSetLoadAvgKey() {
   done
   while [ `date +%M` -eq $minute ]
   do
-    local loadavgInteger=`cat /proc/loadavg | cut -d'.' -f1 | grep '^[0-9][\.0-9]*$'`
+    local loadavgInteger=`cat /proc/loadavg | cut -d' ' -f1 | grep '^[0-9][\.0-9]*$'`
     if [ -n "$loadavgInteger" ]
     then
       for databaseNumber in "$@"
