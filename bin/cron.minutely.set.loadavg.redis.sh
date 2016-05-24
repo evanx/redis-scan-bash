@@ -41,8 +41,18 @@ rhSetLoadAvgKey() {
         then
           rhabort 13 'Unexpected reply'
         fi
+        if [ -t 1 ]
+        then
+          echo "Try:"
+          echo "redis-cli -n $databaseNumber get $key"
+          echo "redis-cli -n $databaseNumber ttl $key"
+          echo
+       fi
       done
-      [ -t 1 ] && echo "Sleeping for 13 seconds"
+      if [ -t 1 ]
+      then
+         echo "Sleeping for 13 seconds..."
+      fi
       sleep 13
     fi
   done
