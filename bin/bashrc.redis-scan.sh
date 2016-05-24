@@ -7,7 +7,7 @@ RedisScan_clean() {
   else
     if [ ! -f ~/.redis-scan/tmp/$$ ]
     then
-      rherror "No PID file: ~/.redis-scan/tmp/$$"
+      rherror "No PID file: ~/.redis-scan/tmp/$$.run"
     else
       rm ~/.redis-scan/tmp/$$*
     fi
