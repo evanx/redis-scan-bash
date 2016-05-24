@@ -13,7 +13,13 @@ usage() {
 }
 
 rhabort() {
-  [ -t 1 ] && >&2 echo "ABORT rhSetLoadAvgKey $*" && usage
+  if [ -t 1 ]
+  then
+    usage
+    echo "$*"
+  else
+    >&2 echo "ABORT rhSetLoadAvgKey $*" usage
+  fi
   return $1
 }
 
@@ -21,7 +27,8 @@ rhSetLoadAvgKey() {
   [ $# -ge 1 ] || rhabort 3 'args'
   key=`echo "$1" | grep '^\w\S*$'` || rhabort 4 "Invalid key [$1]"
   [ -n "$key" ] || rhabort 5 "Key validation failed [$1]"
-  shift || rhabort 6 "No database numbers"
+  shift
+  [ $# -gt 0 ] || rhabort 6 "No database numbers"
   for databaseNumber in "$@"
   do
     if echo "$databaseNumber" | grep -qv '^[0-9][0-9]*$'
