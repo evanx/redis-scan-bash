@@ -19,7 +19,7 @@ rhnote() {
 }
 
 rhdebug() {
-  if [ "$RH_LEVEL-" = 'debug' ]
+  if [ "${RHLEVEL-}" = 'debug' ]
   then
     rhnote "$@"
   fi

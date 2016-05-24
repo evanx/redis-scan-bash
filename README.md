@@ -22,6 +22,11 @@ Let me know any issues via Twitter (https://twitter.com/@evanxsummers) or open a
 
 ### Examples
 
+Let's turn on debug logging in our shell to see what `redis-scan` is doing:
+```shell
+export RHLEVEL=debug
+```
+
 The default will scan all keys:
 ```shell
 redis-scan
@@ -135,7 +140,7 @@ scanSleep=1.5 redis-scan
 ```
 where the duration is in seconds, with decimal digits allowed, as per the `sleep` shell command.
 
-#### Clean up 
+#### Clean up
 
 The script creates a temp dir `~/.redis-scan/tmp` where it writes files prefixed with its PID:
 - `$$.run` contains the PID itself i.e. the value of `$$`
@@ -279,12 +284,12 @@ where this assumes that the repo has been cloned to `~/redis-scan-bash`
 
 To enable debug logging:
 ```shell
-export RH_LEVEL=debug
+export RHLEVEL=debug
 ```
 
 To disable debug logging:
 ```shell
-export RH_LEVEL=info
+export RHLEVEL=info
 ```
 
 ### Further plans
@@ -336,4 +341,3 @@ So for your next bash script, try `set -e` and persevere. It's worth it :)
 ### Further reading
 
 - https://github.com/evanx/redishub
-
