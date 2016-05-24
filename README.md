@@ -171,12 +171,12 @@ When we have a large number of matching keys, and are performing a `type` check 
 
 The defaults themselves are set in the script, and overridden, as follows:
 ```shell
-  local eachLimit=${eachLimit:-1000} # limit of keys to scan, pass 0 to disable
-  local scanSleep=${scanSleep:-.250} # sleep 250ms between each scan
-  local eachCommandSleep=${eachCommandSleep:-.025} # sleep 25ms between each command
-  local loadavgLimit=${loadavgLimit:-1} # sleep while local loadavg above this threshold
-  local loadavgKey=${loadavgKey:-''} # ascertain loadavg from Redis key on target instance
-  local uptimeRemote=${uptimeRemote:-''} # ascertain loadavg via ssh to remote Redis host
+  local eachLimit=${eachLimit-1000} # limit of keys to scan, pass 0 to disable
+  local scanSleep=${scanSleep-.250} # sleep 250ms between each scan
+  local eachCommandSleep=${eachCommandSleep-.025} # sleep 25ms between each command
+  local loadavgLimit=${loadavgLimit-1} # sleep while local loadavg above this threshold
+  local loadavgKey=${loadavgKey-''} # ascertain loadavg from Redis key on target instance
+  local uptimeRemote=${uptimeRemote-''} # ascertain loadavg via ssh to remote Redis host
 ```
 
 So the defaults can be overridden via the command-line passing, or via shell `export`
