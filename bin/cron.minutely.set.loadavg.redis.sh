@@ -36,7 +36,7 @@ rhSetLoadAvgKey() {
     then
       for databaseNumber in "$@"
       do
-         [ -t 1 ] && echo "redis-cli -n $databaseNumber setex $key 90 $loadavgInteger"
+        [ -t 1 ] && echo "redis-cli -n $databaseNumber setex $key 90 $loadavgInteger"
         if redis-cli -n $databaseNumber setex $key 90 $loadavgInteger | grep -v '^OK'
         then
           rhabort 13 'Unexpected reply'
