@@ -222,7 +222,7 @@ do
   sleep 13
 done
 ```
-where `13` is choosen since it has a factor just exceeding 60 seconds, and when the minute changes we exit.
+where a sleep duration of 13 seconds is choosen, since it has a factor closely exceeding 60 seconds. When the minute changes we exit.
 
 
 #### Each commands
