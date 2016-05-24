@@ -242,8 +242,12 @@ Then into the crontab, listing the key and database number or numbers into which
 * * * * * ~/redis-scan-bash/bin/cron.minutely.set.loadavg.redis.sh "cron:loadavg" 13
 ```
 
+We can monitor it:
 ```
+$ redis-cli -n 13 ttl cron:loadavg
+(integer) 79
 ```
+
 
 #### Each commands
 
