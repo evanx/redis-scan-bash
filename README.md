@@ -19,13 +19,14 @@ Let me know any issues via Twitter (https://twitter.com/@evanxsummers) or open a
 
 <img src="https://evanx.github.io/images/rquery/redis-scan-bash-featured.png">
 
+
 ### Examples
 
 The default will scan all keys:
 ```shell
 redis-scan
 ```
-Actually, there is a `eachLimit` (default 1000) so it will only scan a 1000 keys (in batches, with sleeps inbetween), and exit with an error message "Limit reached."
+Actually, there is a `eachLimit` (default 1000) so it will only scan a 1000 keys (in batches, with sleeps inbetween), print a message "Limit reached" and custom exit code with `3.`
 
 If the first parameter is a number prefixed with `@` then it is taken as the database number:
 ```shell
@@ -133,6 +134,20 @@ The scan sleep duration can be changed as follows:
 scanSleep=1.5 redis-scan
 ```
 where the duration is in seconds, with decimal digits allowed, as per the `sleep` shell command.
+
+#### Clean up 
+
+The script creates a temp dir `~/.redis-scan/tmp` where it writes files prefixed with its PID:
+- `$$.run` contains the PID itself i.e. the value of `$$`
+- `$$.scan` contains the output from the `SCAN` command
+- `$$.each` contains output from the `eachCommand`
+
+When the script errors or completes successfully, it will try delete these files, and also find any such files older than 7 days and delete those.
+
+Note that you can abort execution from a different shell by:
+- deleting a specific `$$.run` file to terminate that script
+- deleting all files in `~/.redis-scan/tmp` (terminate all)
+- deleting the directory `~/.redis-scan/tmp` (terminate all)
 
 
 ### Performance considerations

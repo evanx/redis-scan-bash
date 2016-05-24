@@ -1,9 +1,25 @@
 
+
 RedisScan_clean() {
-  rm -f ~/tmp/redis-scan/${$}*
-  local findCount=`find ~/tmp/redis-scan -mtime +1 -type f | wc -l`
-  [ $findCount -gt 0 ] && rhwarn "found $findCount old files in ~/tmp/redis-scan"
-  find ~/tmp/redis-scan -mtime +7 -type f -delete
+  if [ ! -d ~/.redis-scan/tmp ]
+  then
+    rherror "No directory: ~/.redis-scan/tmp"
+  else
+    if [ ! -f ~/.redis-scan/tmp/$$ ]
+    then
+      rherror "No PID file: ~/.redis-scan/tmp/$$"
+    else
+      rm ~/.redis-scan/tmp/$$*
+    fi
+    local findCount=`find ~/.redis-scan/tmp -mtime +7 -type f | wc -l`
+    rhdebug "Found $findCount old files in ~/.redis-scan/tmp."
+    if [ $findCount -gt 0 ]
+    then
+      rhdebug "Running find and delete for older than 7 days:"
+      rhdebug "find ~/.redis-scan/tmp -mtime +7 -type f -delete"
+      find ~/.redis-scan/tmp -mtime +7 -type f -delete
+    fi
+  fi
 }
 
 RedisScan() { # scan command with sleep between iterations
@@ -14,8 +30,12 @@ RedisScan() { # scan command with sleep between iterations
   local loadavgKey=${loadavgKey-''} # ascertain loadavg from Redis key on target instance
   local uptimeRemote=${uptimeRemote-''} # ascertain loadavg via ssh to remote Redis host
   rhdebug "redis-scan args: ${*} (limit $eachLimit keys, sleep ${scanSleep})"
-  mkdir -p ~/tmp/redis-scan
-  local tmp=~/tmp/redis-scan/$$
+  if [ ! -d ~/.redis-scan/tmp ]
+  then
+    rhinfo "Creating tmp dir: ~/.redis-scan/tmp"
+    mkdir -p ~/.redis-scan/tmp
+  fi
+  local tmp=~/.redis-scan/tmp/$$
   rhdebug "tmp $tmp"
   which bc > /dev/null || rhwarn 'Please install: bc'
   local keyScanCommands='sscan zscan hscan'
@@ -396,6 +416,7 @@ RedisScan() { # scan command with sleep between iterations
      return $LINENO
   fi
   rhdebug "redis-cli$redisArgs slowlog len # $slowlogLen"
+  echo $$ > $tmp.run
   while [ true ]
   do
     sleep .005 # hard-coded minimum scan sleep, also $scanSleep below
@@ -403,13 +424,25 @@ RedisScan() { # scan command with sleep between iterations
     then
       rherror "Limit reached: eachLimit $eachLimit"
       RedisScan_clean
-      return 1 # special exit code
+      return 3
+    fi
+    if [ ! -f $tmp.run ]
+    then
+      rherror "Run file deleted: $tmp.run"
+      RedisScan_clean
+      return 4
+    fi
+    if cat $tmp.run | grep -qv "^${$}$"
+    then
+      rherror "Run file inconsistent PID: $tmp.run `cat $tmp.run` $$"
+      RedisScan_clean
+      return 5
     fi
     local scanArgsString=''
     if [ ${#scanArgs[@]} -eq 0 ]
     then
-      redis-cli$redisArgs $scanCommand$scanKey $cursor > $tmp
-      if [ $? -ne 0 ] || head -1 $tmp | grep -qv '^[0-9][0-9]*$'
+      redis-cli$redisArgs $scanCommand$scanKey $cursor > $tmp.scan
+      if [ $? -ne 0 ] || head -1 $tmp.scan | grep -qv '^[0-9][0-9]*$'
       then
         rherror redis-cli$redisArgs $scanCommand$scanKey $cursor
         RedisScan_clean
@@ -417,16 +450,16 @@ RedisScan() { # scan command with sleep between iterations
       fi
     else
       scanArgsString="${scanArgs[@]}"
-      redis-cli$redisArgs $scanCommand$scanKey $cursor "${scanArgs[@]}" > $tmp
-      if [ $? -ne 0 ] || head -1 $tmp | grep -qv '^[0-9][0-9]*$'
+      redis-cli$redisArgs $scanCommand$scanKey $cursor "${scanArgs[@]}" > $tmp.scan
+      if [ $? -ne 0 ] || head -1 $tmp.scan | grep -qv '^[0-9][0-9]*$'
       then
         rherror redis-cli$redisArgs $scanCommand$scanKey $cursor $scanArgsString
         RedisScan_clean
         return $LINENO
       fi
     fi
-    cursor=`head -1 $tmp`
-    keyCount=$[ $keyCount + `cat $tmp | wc -l` - 1 ]
+    cursor=`head -1 $tmp.scan`
+    keyCount=$[ $keyCount + `cat $tmp.scan | wc -l` - 1 ]
     rhdebug keyCount $keyCount
     if [ $cursorCount -eq 0 -o $[ $cursorCount % 10 ] -eq 0 ]
     then
@@ -435,12 +468,12 @@ RedisScan() { # scan command with sleep between iterations
     cursorCount=$[ $cursorCount + 1 ]
     if [ ${#matchType} -eq 0 -a ${#eachCommand} -eq 0 ]
     then
-      if [ `tail -n +2 $tmp | sed '/^$/d' | wc -l` -gt 0 ]
+      if [ `tail -n +2 $tmp.scan | sed '/^$/d' | wc -l` -gt 0 ]
       then
-        tail -n +2 $tmp
+        tail -n +2 $tmp.scan
       fi
     else
-      for key in `tail -n +2 $tmp`
+      for key in `tail -n +2 $tmp.scan`
       do
         if [ ${#matchType} -gt 0 ]
         then
