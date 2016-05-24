@@ -198,6 +198,7 @@ Generally speaking, one wants conversative sleep times to minimise the impact on
 
 You can roughly work out how long a full scan will take by timing the run for 1000 keys, and factoring the time for the total number of keys. If it's too many days perhaps, you can override the settings `scanSleep` and `eachCommandSleep` with shorter durations. However, you should monitor your system during these runs to ensure it's not too adversely affected.
 
+We can effectively pause long runs by simulating a high load on the host of the target Redis instance via the `loadavgKey` described below.
 
 #### Remote loadavg
 
