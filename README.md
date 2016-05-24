@@ -235,17 +235,24 @@ You can test our cron script as follows:
 ```
 But beware it will set that key and the specified Redis instance.
 
-Then into the crontab, listing the key and database number or numbers into which insert the key:
+Then into the crontab, specifying the key and database number or numbers on which to set this key:
 ```
-* * * * * ~/redis-scan-bash/bin/cron.minutely.set.loadavg.redis.sh "cron:loadavg" 13
+* * * * * ~/redis-scan-bash/bin/cron.minutely.set.loadavg.redis.sh "cron:loadavg" <dbns>
 ```
 
 We can monitor it:
+```shell
+redis-cli -n 13 ttl cron:loadavg
 ```
-$ redis-cli -n 13 ttl cron:loadavg
+```
 (integer) 79
 ```
-
+```shell
+redis-cli -n 13 get cron:loadavg
+```
+```
+"0.01"
+```
 
 #### Each commands
 

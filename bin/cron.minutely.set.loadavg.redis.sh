@@ -9,18 +9,20 @@ usage() {
   l First arg: Redis key to set the loadav e.g. 'cron:loadavg'
   l More args: Redis database numbers on the local instance in which to set this key.
   l e.g. 'cron:loadavg' 13 14 # will set on Redis databases 13 and 14
-  " | sed 's/^\s\s*l //g'
+  " | sed 's/^\s\s*l //g' | sed '/*$/d'
 }
 
 rhabort() {
+  code="$1"
+  shift
   if [ -t 1 ]
   then
     usage
-    echo "$*"
+    echo "Abort info: $@ (code $code)"
   else
-    >&2 echo "ABORT rhSetLoadAvgKey $*" usage
+    >&2 echo "ABORT rhSetLoadAvgKey $code $@" usage
   fi
-  return $1
+  echo return $code
 }
 
 rhSetLoadAvgKey() {
