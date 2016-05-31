@@ -517,10 +517,9 @@ RedisScan() { # scan command with sleep between iterations
                     value="$json"
                     if [ "$colorJson" = 1 ]
                     then
-                      if echo '{}' | pygmentize -l json 2>&1 >/dev/null
+                      if echo '{}' | pygmentize -l json 2>/dev/null >/dev/null
                       then
-                        value=`echo "$json" | pygmentize -l json 2>/dev/null || echo ''`
-                        [ -n "$value" ] || value="$json"
+                        value=`echo "$json" | pygmentize -l json 2>/dev/null || echo "$json"`
                       fi
                     fi
                   fi
