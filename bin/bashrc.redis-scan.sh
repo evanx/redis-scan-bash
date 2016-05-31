@@ -56,6 +56,7 @@ RedisScan() { # scan command with sleep between iterations
   done
   rhdebug "eachCommands $eachCommands"
   local commit=${commit-0}
+  local colorJson=${REDIS_SCAN_COLOR_JSON-1}
   local cursor=${cursor-0}
   local scanCount=${scanCount-0}
   local redisArgs=''
@@ -508,16 +509,19 @@ RedisScan() { # scan command with sleep between iterations
               for key in `cat $tmp.each | sed -n -e '1~2p'`
               do
                 value=`cat $tmp.each | grep "^${key}$" -A1 | tail -1`
-                if which python > /dev/null && echo "$value" | grep -q '^{.*}$'
+                if which python > /dev/null && echo "$value" | grep -q '^{.*}$' 
                 then
                   local json=`echo "$value" | python -mjson.tool 2>/dev/null || echo ''`
-                  if [ -n "$json" ] 
+                  if [ -n "$json" ]
                   then
-                    if which pygmentize > /dev/null
+                    value="$json"
+                    if [ "$colorJson" = 1 ]
                     then
-                      value=`echo "$json" | pygmentize -l json`
-                    else
-                      value="$json"
+                      if echo '{}' | pygmentize -l json 2>&1 >/dev/null
+                      then
+                        value=`echo "$json" | pygmentize -l json 2>/dev/null || echo ''`
+                        [ -n "$value" ] || value="$json"
+                      fi
                     fi
                   fi
                 fi
