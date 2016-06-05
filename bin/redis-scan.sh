@@ -2,7 +2,7 @@
 
 set -u -e
 
-RHDIR=${RHDIR-~/redis-scan-bash}
+RHDIR=${RHDIR-$HOME/redis-scan-bash}
 . $RHDIR/bin/rhlogging.sh
 
 RedisScan_help() {
@@ -14,11 +14,11 @@ RedisScan_help() {
 }
 
 eachLimit=${eachLimit-1000} # limit of keys to scan, pass 0 to disable
-scanSleep=${scanSleep-.250} # sleep 250ms between each scan
-eachCommandSleep=${eachCommandSleep-.025} # sleep 25ms between each command
+scanSleep=${scanSleep-0.250} # sleep 250ms between each scan
+eachCommandSleep=${eachCommandSleep-0.025} # sleep 25ms between each command
 loadavgLimit=${loadavgLimit-1} # sleep while local loadavg above this threshold
-loadavgKey=${loadavgKey-''} # ascertain loadavg from Redis key on target instance
-uptimeRemote=${uptimeRemote-''} # ascertain loadavg via ssh to remote Redis host
+loadavgKey=${loadavgKey-} # ascertain loadavg from Redis key on target instance
+uptimeRemote=${uptimeRemote-} # ascertain loadavg via ssh to remote Redis host
 
 formatJson=${RH_formatJson-1} # use python to format
 colorJson=${RH_colorJson-1} # use pygmentize to colorise
