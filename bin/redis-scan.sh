@@ -86,7 +86,7 @@ then
   rhabort ENV $LINENO "Please install 'bc' or 'python'"
 fi
 
-echo '{}' | pygmentize -l json 2>/dev/null >/dev/null
+echo '{}' | pygmentize -l json 2>/dev/null >/dev/null || rhdebug 'Install pygmentize to colorise JSON'
 try_pygmentize=$?
 
 # static
