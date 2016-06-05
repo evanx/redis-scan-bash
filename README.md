@@ -1,6 +1,14 @@
 
 ## redis-scan
 
+### Changes
+
+#### 0.4.0 
+
+Use `~/redis-scan-bash/bin/redis-scan.sh` which you can alias in `~/.bashrc` as per instructions further below. 
+
+The `bin/bashrc.redis-scan.sh` and `rhloggin.sh` files must no longer to imported into your `~/.bashrc.`
+
 ### Problem
 
 We know we must avoid `redis-cli keys '*'` especially on production servers with many keys, since that blocks other clients for a significant time e.g. more than 250ms, maybe even a few seconds. That might mean all current requests by users of your website are delayed for that time. Those will be recorded in your `slowlog` which you might be monitoring, and so alerts get triggered etc. Let's avoid that.
