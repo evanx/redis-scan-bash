@@ -270,24 +270,22 @@ However the scan commands must have cursor `0` i.e. just the first batch
 
 ### Installation
 
-Let's grab the repo into a `tmp` directory.
+Let's grab the repo into our home directory.
 ```shell
 ( set -e
-  mkdir -p ~/tmp
-  cd ~/tmp
+  cd
   git clone https://github.com/evanx/redis-scan-bash
-  cd redis-scan-bash
-  ls -l bin
+  ls -l redis-scan-bash/bin
 )
 ```
 
-Import the logging utils and `redis-scan` scripts into our shell:
+We alias `redis-scan` for for shell:
 ```shell
-cd ~/tmp/redis-scan-bash
-
-. bin/bashrc.rhlogging.sh
-. bin/bashrc.redis-scan.sh
+alias redis-scan=~/redis-scan-bash/bin/redis-scan.sh
 ```
+where this assumes that the repo has been cloned to `~/redis-scan-bash`
+
+Later, drop this into your `~/.bashrc` for next time.
 
 Now we can try `redis-scan` in this shell:
 ```shell
@@ -296,14 +294,6 @@ redis-scan @set
 redis-scan @hash match '*'
 redis-scan @set -- ttl
 ```
-
-Later you can drop the following two lines into your `~/.bashrc`
-```shell
-. ~/redis-scan-bash/bin/bashrc.rhlogging.sh
-. ~/redis-scan-bash/bin/bashrc.redis-scan.sh
-```
-where this assumes that the repo has been cloned to `~/redis-scan-bash`
-
 
 ### Troubleshooting
 
@@ -320,13 +310,16 @@ export RHLEVEL=info
 ### Further plans
 
 - regex for filtering keys
-- refactor as a standalone bash script not necessarily via bashrc
+- refactor as a standalone bash script not necessarily via bashrc (DONE)
 - write a Node version
 
-When a future Node version has V8 supporting async/await so Babel not is required and start up time is quick. Then Node will be an excellent choice for console apps like this.
+When a future Node version has V8 supporting async/await so Babel not is required and start up time is quick.
 
+Then Node will be an excellent choice for console apps like this.
 
-### Upcoming refactor
+Hopefully I will be inspired to write the Node version in meantime, even though it will not be as useful because of slow startup.
+
+### Upcoming refactor (DONE)
 
 I'll be refactoring to externalise the `RedisScan` function from `bashrc`
 
@@ -357,7 +350,6 @@ In production:
 It's easy to reason about the state, when we know that all commands succeeded, or otherwise their nonzero returns were handled appropriately.
 
 So for your next bash script, try `set -e` and persevere. It's worth it :)
-
 
 ### Contact
 

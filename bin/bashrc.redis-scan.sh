@@ -1,4 +1,8 @@
-
+ 
+echo "
+# Try ~/redis-scan-bash/bin/redis-scan.sh as follows:
+alias redis-scan=~/redis-scan-bash/bin/redis-scan.sh # put in your ~/.bashrc
+"
 
 RedisScan_clean() {
   if [ ! -d ~/.redis-scan/tmp ]
