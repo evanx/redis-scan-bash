@@ -131,6 +131,7 @@ rhGet() {
 # We use 3 for ENV errors (a catchall for system/dep/env), 4 for subsequent APP errors
 # returns nonzero code e.g. for scripts with set -e 
 rhabort() {
+  set +x # turn off debugging 
   local code=1
   local lineno=0
   if [ $# -gt 0 ]
