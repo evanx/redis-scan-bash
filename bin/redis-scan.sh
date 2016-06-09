@@ -10,7 +10,7 @@ RedisScan_help() {
   rhinfo "redis-scan '*' # scan all keys"
   rhinfo "redis-scan @1 '*' -- scard # scan all on db1, if set then scard" 
   rhinfo "redis-scan @1 'demo:*' -- hgetall # if hash, then hgetall" 
-  rhnote "See https://github.com/evanx/redis-scan-bash"
+  rhcomment "See https://github.com/evanx/redis-scan-bash"
 }
 
 eachLimit=${eachLimit-1000} # limit of keys to scan, pass 0 to disable
@@ -425,13 +425,18 @@ RedisScan_formatJsonValue() {
     echo "$value" | tail -1 | grep -q '}\s*$\|\]\s*$'
   then
     #rhdebug "json formatJson=[$formatJson] colorJson=[$colorJson] pygmentize=[$try_pygmentize]"
-    if [ "$colorJson" = 1 -a "$try_pygmentize" -eq 0 ]
-    then
-      formattedValue=`echo "$value" | pygmentize -l json 2>/dev/null || echo ''`
-    fi
     if [ "$formatJson" = 1 -a ${#formattedValue} -eq 0 -a $which_python -eq 0 ]
     then
-      formattedValue=`echo "$value" | python -mjson.tool 2>/dev/null || echo ''`
+      local json=`echo "$value" | python -mjson.tool 2>/dev/null || echo ''`
+      if [ ${#json} -gt 0 ]
+      then
+        if [ "$colorJson" = 1 -a "$try_pygmentize" -eq 0 ]
+        then
+          formattedValue=`echo "$json" | pygmentize -l json 2>/dev/null || echo ''`
+        else
+          formattedValue="$json"
+        fi
+      fi
     fi
   fi
   if [ ${#formattedValue} -gt 0 ] 

@@ -3,7 +3,12 @@ rhinit() {
   if [ -z "${BASH-}" ] 
   then
     >&2 echo 'Please use bash shell!'
-    exit 3
+    if [ $0 = 'bash' ] 
+    then
+      return 3
+    else
+      exit 3
+    fi
   fi
   RH_WIDTH=`tput cols`
 }
@@ -14,115 +19,90 @@ rhnone() {
   return 0
 }
 
-rhnote() {
+rhcomment() {
   if [ -t 1 ]
   then
-    >&2 echo -e "\e[90m${@}\e[39m"
+    >&2 echo -e "\e[90m${*}\e[39m"
   else
-    >&2 echo "DEBUG ${@}"
+    >&2 echo "DEBUG ${*}"
   fi
+}
+
+rhnote() {
+  rhcomment "$*"
 }
 
 rhdebug() {
   if [ "${RHLEVEL-}" = 'debug' ]
   then
-    rhnote "$@"
+    rhcomment "$@"
   fi
 }
 
 rhhead() {
   if [ -t 1 ]
   then
-    >&2 echo -e "\e[1m\e[36m${@}\e[39m\e[0m"
+    >&2 echo -e "\n\e[1m\e[36m${*}\e[39m\e[0m"
   else
-    >&2 echo "INFO ${@}"
+    >&2 echo "\n# ${*}"
   fi
 }
 
 rhinfo() {
   if [ -t 1 ]
   then
-    >&2 echo -e "\e[1m\e[94m${@}\e[39m\e[0m"
+    >&2 echo -e "\e[1m\e[94m${*}\e[39m\e[0m"
   else
-    >&2 echo "INFO ${@}"
+    >&2 echo "INFO ${*}"
   fi
 }
 
 rhprop() {
-   if [ -t 1 ]
-   then
-     >&2 echo -e "\e[1m\e[36m${1}\e[0m \e[39m${2}\e[39m\e[0m"
-   else
-     >&2 echo "$1 $2"
-   fi
+  if [ -t 1 ]
+  then
+    >&2 echo -e "\e[1m\e[36m${1}\e[0m \e[39m${2}\e[39m\e[0m"
+  else
+    >&2 echo "$1 $2"
+  fi
+}
+
+rhalert() {
+  if [ -t 1 ]
+  then
+    >&2 echo -e "\e[1m\e[33m${*}\e[39m\e[0m"
+  else
+    >&2 echo "WARNING ${*}"
+  fi
 }
 
 rhwarn() {
-   if [ -t 1 ]
-   then
-     >&2 echo -e "\e[1m\e[33m${@}\e[39m\e[0m"
-   else
-     >&2 echo "WARNING ${@}"
-   fi
+  rhalert "$*"
 }
 
 rherror() {
    if [ -t 1 ]
    then
-     >&2 echo -e "\e[1m\e[91m${@}\e[39m\e[0m"
+     >&2 echo -e "\e[1m\e[91m${*}\e[39m\e[0m"
    else
-     >&2 echo "ERROR ${@}"
+     >&2 echo "ERROR ${*}"
    fi
 }
 
 rhsection() {
   echo
   rhwarn `printf '%200s\n' | cut -b1-${RH_WIDTH} | tr ' ' -`
-  rhwarn "$@"
+  rhwarn "$*"
 }
 
 rhsub() {
   echo
   rhnote `printf '%200s\n' | cut -b1-${RH_WIDTH} | tr ' ' \.`
-  rhinfo "$@"
+  rhinfo "$*"
 }
 
-RHCODES="GENERAL=1 BUILTIN=2 ENV=3 PARAM=5 APP=6 OPTION=63"
-
-rhKey() {
-  local value="$1"
-  shift
-  local elseValue="$1"
-  for entry in "$@"
-  do
-    local k=`echo "$entry" | cut -d'=' -f1`
-    local v=`echo "$entry" | cut -d'=' -f2`
-    if [ "${v}" = "${value}" ] 
-    then
-      echo "$k"
-      return
-    fi
-  done
-  echo "$elseValue"
-}
-
-rhGet() {
-  local key="$1"
-  shift
-  local elseValue="$1"
-  shift
-  for entry in "$@"
-  do
-    local k=`echo "$entry" | cut -d'=' -f1`
-    local v=`echo "$entry" | cut -d'=' -f2`
-    if [ "${k}" = "${key}" ]
-    then
-      echo "$v"
-      return
-    fi
-  done
-  echo "$elseValue"
-}
+declare -A ErrorCodes=( 
+  [GENERAL]=1 [ENV]=3 [PARAM]=4 [APP]=5 
+)
 
 # command: rhabort $code $*
 # example: rhabort 1 @$LINENO "error message" $some
@@ -131,16 +111,14 @@ rhGet() {
 # We use 3 for ENV errors (a catchall for system/dep/env), 4 for subsequent APP errors
 # returns nonzero code e.g. for scripts with set -e 
 rhabort() {
-  set +x # turn off debugging 
   local code=1
-  local lineno=0
   if [ $# -gt 0 ]
   then
     if echo "$1" | grep -q '^[A-Z]\S*$'
     then
-      local errorCode=`rhGet $1 '' $RHCODES`
-      rhdebug "errorCode $1 $errorCode"
-      if [ -n "$errorCode" ]
+      local errorCode="${ErrorCodes[$1]}"
+      rhdebug errorCode $1 $errorCode 
+      if [ "$errorCode" -gt 0 ]
       then
         code=$errorCode
         shift
@@ -151,14 +129,15 @@ rhabort() {
       shift
     fi
   fi
-  if [ $# -gt 0 ]
-  then
-    if echo "$1" | grep -q '^[0-9][0-9]*$'
+  for key in "${!ErrorCodes[@]}"
+  do
+    local value=${ErrorCodes[$key]}
+    if [ $value -eq $code ]
     then
-      lineno=$1
-      shift
+      errorName="$key"
+      break
     fi
-  fi
+  done
   if [ $# -gt 0 ]
   then
     if echo "$1" | grep -q 'Try: '
@@ -168,8 +147,7 @@ rhabort() {
       shift
     fi
   fi
-  local errorName=`rhKey $code $code $RHCODES`
-  rherror "Aborting. Reason: ${*} (line $lineno, code $errorName)"
+  rherror "Aborting. Reason: ${*} (code $code $errorName)"
   if [ $code -le 0 ]
   then
     code=1

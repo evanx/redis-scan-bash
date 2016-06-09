@@ -117,6 +117,7 @@ Note that by default the script will try to format values resembling JSON, using
 You can install `pygmentize` as follows:
 ```shell
 sudo easy_install Pygments
+sudo easy_install Pygments-json
 ```
 where we assume you have `python` and its `easy_install` utility installed on your system.
 
