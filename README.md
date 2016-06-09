@@ -3,6 +3,13 @@
 
 ### Changes
 
+#### 0.5.0 (June 9)
+
+- Limit reached exit code changed from 3 to 60
+- Fixes related to Pygments (pygmentize -l json)
+- `get` each command (will render pretty JSON)
+- `length` each command for length of string (strlen) or collection (llen, hlen, scard, zcard) by first checking `type`
+
 #### 0.4.0 
 
 Use `~/redis-scan-bash/bin/redis-scan.sh` which you can alias in `~/.bashrc` as per instructions further below. 
