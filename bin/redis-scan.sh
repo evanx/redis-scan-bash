@@ -524,7 +524,7 @@ RedisScan_scan() {
     then
       rherror "Limit reached: eachLimit $eachLimit"
       RedisScan_clean
-      return 3
+      return 60
     fi
     if [ ! -f $tmp.run ]
     then

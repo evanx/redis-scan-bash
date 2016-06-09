@@ -39,7 +39,7 @@ The default will scan all keys:
 ```shell
 redis-scan
 ```
-Actually, there is a `eachLimit` (default 1000) so it will only scan 1000 keys (in batches, with sleeps inbetween), print a message "Limit reached" and custom exit code with `3.`
+Actually, there is a `eachLimit` (default 1000) so it will only scan 1000 keys (in batches, with sleeps inbetween), print a message "Limit reached" and custom exit code of `60.`
 
 If the first parameter is a number prefixed with `@` then it is taken as the database number:
 ```shell
