@@ -117,6 +117,12 @@ Print hashes:
 redis-scan match 'rp:*' -- hgetall
 ```
 
+Print the `length` of the key by checking its `type` and then one of: `strlen llen hlen scard zcard`
+```shell
+redis-scan match '*' -- length
+```
+
+
 #### JSON formatting
 
 Note that by default the script will try to format values resembling JSON, using `python` and also `pygmentize` if available.
