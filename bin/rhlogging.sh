@@ -10,7 +10,12 @@ rhinit() {
       exit 3
     fi
   fi
-  RH_WIDTH=`tput cols`
+  if [ -n "$TERM" ]
+  then
+    RH_WIDTH=`tput cols`
+  else
+    RH_WIDTH=80
+  fi
 }
 
 rhinit
