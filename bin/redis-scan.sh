@@ -95,8 +95,8 @@ try_pygmentize=$?
 keyScanCommands='sscan zscan hscan'
 scanCommands='scan sscan zscan hscan'
 matchTypes='string set zset list hash any' # 'any' for testing
-eachCommands='type ttl persist expire del echo length' # 'length' for strlen/llen/hlen/scard/zcard
-safeEachCommands='type ttl get scard smembers zcard llen hlen hgetall hkeys hvals sscan zscan lrange length'
+eachCommands='type ttl persist expire del length value' # 'length' for strlen/llen/hlen/scard/zcard
+safeEachCommands='type ttl get scard smembers zcard llen hlen hgetall hkeys hvals sscan zscan lrange length value'
 eachArgsCommands='expire lrange sscan hscan zrevrange zrange'
 declare -A typeEachCommands
 typeEachCommands['string']='get'
@@ -124,7 +124,6 @@ scanCommand='scan'
 scanKey=''
 keyCount=0
 cursorCount=0
-lengthCommand=''
 
 declare -a scanArgs=()
 
@@ -419,7 +418,15 @@ RedisScan_scanEach() {
     else
       if [ $quiet = 0 ]
       then
-        rhinfo redis-cli$redisArgs $eachCommand $key$eachArgs
+        if [ $eachCommand = 'length' ]
+        then
+          rhdebug "redis-cli args: $redisArgs (print length)"
+        elif [ $eachCommand = 'value' ]
+        then
+          rhdebug "redis-cli args: $redisArgs (print value)"
+        else
+          rhinfo redis-cli$redisArgs $eachCommand $key$eachArgs
+        fi
       fi
       if [ $commit -eq 1 ] || echo " $safeEachCommands " | grep -q " $eachCommand "
       then
@@ -461,21 +468,38 @@ RedisScan_formatJsonValue() {
 RedisScan_scanEachExecute() { # key # $tmp.scan
   local key="$1"
   sleep $eachCommandSleep
+  local actualEachCommand="$eachCommand"
   if [ "$eachCommand" = "length" ]
   then
     local type=`redis-cli$redisArgs type "$key" | grep '^[a-z]*$' || echo ''`
-    lengthCommand=`RedisScan_lengthCommand "$type"`
-    rhdebug "redis-cli$redisArgs $lengthCommand $key"
-    redis-cli$redisArgs $lengthCommand $key 
+    local lengthCommand=`RedisScan_lengthCommand "$type"`
+    if [ ${#lengthCommand} -gt 0 ]
+    then
+      [ $quiet -eq 0 ] && rhinfo "redis-cli$redisArgs $lengthCommand $key"
+      redis-cli$redisArgs $lengthCommand $key 
+    fi
     return
+  elif [ "$eachCommand" = "value" ]
+  then
+    local type=`redis-cli$redisArgs type "$key" | grep '^[a-z]*$' || echo ''`
+    local valueCommand=`RedisScan_valueCommand "$type" "$key" "$eachArgs"`
+    if [ ${#valueCommand} -eq 0 ]
+    then
+      return
+    else
+      actualEachCommand=`echo "$valueCommand" | cut -d' ' -f1`
+      [ $quiet -eq 0 ] && rhinfo "redis-cli$redisArgs $valueCommand"
+      redis-cli$redisArgs $valueCommand > $tmp.each
+    fi
+  else
+    redis-cli$redisArgs $eachCommand $key$eachArgs > $tmp.each
   fi
-  redis-cli$redisArgs $eachCommand $key$eachArgs > $tmp.each
   if [ $? -ne 0 ] || head -1 $tmp.each | grep -q '^(error)\|^WRONGTYPE\|^Unrecognized option\|^Could not connect'
   then
     cat $tmp.each
     rhabort APP $LINENO
   fi
-  if [ "$eachCommand" = "hgetall" ]
+  if [ "$actualEachCommand" = "hgetall" ]
   then
     for key in `cat $tmp.each | sed -n -e '1~2p'`
     do
@@ -490,6 +514,36 @@ RedisScan_scanEachExecute() { # key # $tmp.scan
     echo "$value"
   else
     cat $tmp.each
+  fi
+}
+
+RedisScan_valueCommand() {
+  local type="$1"
+  local key="$2"
+  local args="$3"
+  if [ "$type" = 'string' ]
+  then
+    echo "get $key"
+  elif [ "$type" = 'list' ]
+  then
+    echo "lrange $key 0 10"
+  elif [ "$type" = 'set' ]
+  then
+    echo "sscan $key 0"
+  elif [ "$type" = 'zset' ]
+  then
+    echo "zscan $key 0"
+  elif [ "$type" = 'hash' ]
+  then
+    if [ ${#args} -gt 0 ]
+    then
+      rhdebug "value $type  $key $type $args"
+      echo "hget $key $args"
+    else
+      echo "hgetall $key"
+    fi
+  else
+    echo ''
   fi
 }
 
