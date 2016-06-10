@@ -42,9 +42,9 @@ Let's turn on debug logging in our shell to see what `redis-scan` is doing:
 export RHLEVEL=debug
 ```
 
-The default will scan all keys:
+Scan all keys:
 ```shell
-redis-scan
+redis-scan '*'
 ```
 Actually, there is a `eachLimit` (default 1000) so it will only scan 1000 keys (in batches, with sleeps inbetween), print a message "Limit reached" and custom exit code of `60.`
 
@@ -103,25 +103,24 @@ redis-scan -- lrange 0 4
 
 Initial scan of matching sets:
 ```shell
-redis-scan match 'rp:*' -- sscan 0
+redis-scan 'rp:*' -- sscan 0
 ```
 where `redis-cli sscan KEY 0` is invoked on each set key matching `rp:*`
 
 Print hash keys:
 ```shell
-redis-scan match 'rp:*' -- hkeys
+redis-scan 'rp:*' -- hkeys
 ```
 
 Print hashes:
 ```shell
-redis-scan match 'rp:*' -- hgetall
+redis-scan 'rp:*' -- hgetall
 ```
 
 Print the `length` of the key by checking its `type` and then one of: `strlen llen hlen scard zcard`
 ```shell
-redis-scan match '*' -- length
+redis-scan '*' -- length
 ```
-
 
 #### JSON formatting
 
