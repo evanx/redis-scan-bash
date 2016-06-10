@@ -25,6 +25,7 @@ colorJson=${RH_colorJson-1} # use pygmentize to colorise
 rhdebug formatJson=${formatJson} colorJson=${colorJson}
 
 commit=${commit-0} # when each commands specified, default is dry run if no @commit cli-param
+quiet=${quiet-0} # be less noisy
 
 # ensure user/process specific tmp dir 
 
@@ -343,6 +344,9 @@ RedisScan_argsEach() {
     if [ -z "$argt" ]
     then
       rhabort PARAM $LINENO "Empty directive"
+    elif [ $argt = 'quiet' ]
+    then
+      quiet=1
     elif [ $argt = 'commit' ]
     then
       commit=1
@@ -366,6 +370,10 @@ RedisScan_argsEach() {
 }
 
 RedisScan_eachConfirm() {
+  if [ $quiet -eq 1 -a $commit -eq 0 ] 
+  then
+    return 
+  fi
   if [ ${#matchType} -gt 0 ]
   then
     rhinfo "@$matchType eachLimit=$eachLimit commit=$commit scanSleep=$scanSleep loadavgLimit=$loadavgLimit"
@@ -409,7 +417,10 @@ RedisScan_scanEach() {
     then
       echo $key
     else
-      rhinfo redis-cli$redisArgs $eachCommand $key$eachArgs
+      if [ $quiet = 0 ]
+      then
+        rhinfo redis-cli$redisArgs $eachCommand $key$eachArgs
+      fi
       if [ $commit -eq 1 ] || echo " $safeEachCommands " | grep -q " $eachCommand "
       then
         RedisScan_scanEachExecute "$key"
@@ -505,12 +516,17 @@ RedisScan_lengthCommand() {
 }
 
 RedisScan_scan() {
-  if [ ${#scanArgs[@]} -eq 0 ]
+  local message="scan: redis-cli$redisArgs $scanCommand$scanKey $cursor"
+  if [ ${#scanArgs[@]} -gt 0 ]
   then
-    rhinfo "scan: redis-cli$redisArgs $scanCommand$scanKey $cursor"
-  else
-    rhinfo "scan: redis-cli$redisArgs $scanCommand$scanKey $cursor ${scanArgs[@]}"
+    message="$message ${scanArgs[@]}"
   fi
+  if [ $quiet -eq 1 ]
+  then
+    rhdebug "$message"
+  else
+    rhinfo "$message"
+  fi    
   local slowlogLen=`redis-cli$redisArgs slowlog len`
   if ! [[ "$slowlogLen" =~ ^[0-9][0-9]*$ ]]
   then

@@ -54,11 +54,14 @@ rhhead() {
 }
 
 rhinfo() {
-  if [ -t 1 ]
+  if [ "${RHLEVEL-}" != 'warn' ]
   then
-    >&2 echo -e "\e[1m\e[94m${*}\e[39m\e[0m"
-  else
-    >&2 echo "INFO ${*}"
+    if [ -t 1 ]
+    then
+      >&2 echo -e "\e[1m\e[94m${*}\e[39m\e[0m"
+    else
+      >&2 echo "INFO ${*}"
+    fi
   fi
 }
 

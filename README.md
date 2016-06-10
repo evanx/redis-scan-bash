@@ -9,6 +9,7 @@
 - Fixes related to Pygments (pygmentize -l json)
 - `get` each command (will render pretty JSON)
 - `length` each command for length of string (strlen) or collection (llen, hlen, scard, zcard) by first checking `type`
+- `@quiet` to not echo the each command/key
 
 #### 0.4.0 
 
